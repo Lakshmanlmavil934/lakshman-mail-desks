@@ -1,520 +1,343 @@
 
-const today = new Date();
-
-const pad = n => String(n).padStart(2, "0");
-
-const iso = d =>
-  `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-
-const pretty = d =>
-  `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
-
-const plusDays = (d, n) => {
-  let x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x;
-};
-
-let mailDate = iso(today);
-let backupDate = iso(today);
-
-const templates = [
-  [
-    "Project status — weekly",
-    "Weekly project note",
-    "Hi Mira, Here is the latest project status as of {date}. Highlights: Product review is on track. Please let me know if you need any details.",
-    "mira@example.com",
-    "Project status update"
-  ],
-  [
-    "Design review follow-up",
-    "A few notes after our design review",
-    "Hi Jo, Thank you for the thoughtful review on {date}. I have folded the agreed changes into the latest version. Please share any final feedback.",
-    "jo@example.com",
-    "Design review follow-up"
-  ],
-  [
-    "Invoice reminder",
-    "Invoice follow-up",
-    "Hello, A quick follow-up on invoice #1842. Could you confirm its expected payment date? Please let me know if you need another copy.",
-    "accounts@example.com",
-    "Reminder: Invoice #1842"
-  ],
-  [
-    "Meeting confirmation",
-    "Confirmed: our conversation on {date}",
-    "Hi Nina, Confirming our conversation for {date}. I have set aside the full hour and will share the agenda before the meeting.",
-    "nina@example.com",
-    "Meeting confirmation"
-  ],
-  [
-    "Partner introduction",
-    "An introduction to Ana",
-    "Hi Samir, Sharing this introduction on {date}. I wanted to connect you with Ana, who may be a great person to speak with about the project.",
-    "samir@example.com",
-    "Partner introduction"
-  ],
-  [
-    "Request for materials",
-    "Materials for our next working session",
-    "Hi Devon, Before we meet on {date}, could you send over the latest research notes and presentation materials? Thanks for your help.",
-    "devon@example.com",
-    "Request for materials"
-  ],
-  [
-    "Decision log update",
-    "Decision log updated",
-    "Hi team, The decision log has been updated on {date}. Please review the latest notes and let me know if anything needs correction.",
-    "team@example.com",
-    "Decision log update"
-  ],
-  [
-    "Thank-you note",
-    "Thank you for the conversation",
-    "Hi, Thank you for taking the time to speak with me on {date}. I appreciate your guidance and look forward to staying in touch.",
-    "hello@example.com",
-    "Thank you"
-  ],
-  [
-    "Task handoff",
-    "Handoff and next steps",
-    "Hi team, I have completed my part of the task as of {date}. The key files and next steps are included below. Please reach out with questions.",
-    "team@example.com",
-    "Task handoff"
-  ],
-  [
-    "Weekly reminder",
-    "A quick weekly reminder",
-    "Hello, Sharing a quick reminder for {date}. Please update your items before the end of the day so we can keep everything on track.",
-    "team@example.com",
-    "Weekly reminder"
-  ]
+const emailTemplates = [
+  {
+    title: "Daily Work Update",
+    subject: "Daily Work Update",
+    message: "Hi Team,\n\nPlease find my daily work update below.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Shift Handover",
+    subject: "Shift Handover Update",
+    message: "Hi Team,\n\nPlease find the shift handover details below.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Leave Request",
+    subject: "Leave Request",
+    message: "Hi Team,\n\nI would like to request leave. Kindly approve my request.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Late Login",
+    subject: "Late Login Intimation",
+    message: "Hi Team,\n\nI would like to inform you that I may log in late today.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "System Issue",
+    subject: "System Issue",
+    message: "Hi Team,\n\nI am facing a system issue. Please help me resolve it.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Work Completion",
+    subject: "Work Completion Update",
+    message: "Hi Team,\n\nI have completed the assigned work.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Meeting Request",
+    subject: "Meeting Request",
+    message: "Hi Team,\n\nCould you please schedule a meeting to discuss this?\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Request for Support",
+    subject: "Request for Support",
+    message: "Hi Team,\n\nI need your support regarding the below-mentioned task.\n\nThanks,\nLakshman"
+  },
+  {
+    title: "Thank You",
+    subject: "Thank You",
+    message: "Hi Team,\n\nThank you for your support and guidance.\n\nRegards,\nLakshman"
+  },
+  {
+    title: "General Update",
+    subject: "General Update",
+    message: "Hi Team,\n\nI would like to share a quick update.\n\nThanks,\nLakshman"
+  }
 ];
 
-const defaultSheets = [
-  "Weekly Planning",
-  "Content Calendar",
-  "Project Brief",
-  "Budget Tracker",
-  "Meeting Notes",
-  "Client Intake",
-  "Launch Checklist",
-  "Resource Library",
-  "Team Roster",
-  "Quarterly Review",
-  ...Array.from({length: 10}, (_, i) => `Sheet ${i+11}`)
-];
+const sampleSheets = Array.from(
+  { length: 20 },
+  (_, index) => `Sheet ${String(index + 1).padStart(2, "0")}`
+);
 
-let sheetNames;
+let selectedTemplate = null;
+let selectedDate = new Date().toISOString().split("T")[0];
 
-try {
-  sheetNames = JSON.parse(
-    localStorage.getItem("lak_sheet_names") || "null"
-  ) || defaultSheets.slice();
-} catch {
-  sheetNames = defaultSheets.slice();
+function getElement(id) {
+  return document.getElementById(id);
 }
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;"
-}[c]));
-
-function dateFor(mode, custom) {
-  if (mode === "tomorrow") {
-    return iso(plusDays(today, 1));
-  }
-
-  if (mode === "custom") {
-    return custom || iso(today);
-  }
-
-  return iso(today);
+function getSelectedDate() {
+  const dateInput = getElement("datePicker");
+  return dateInput && dateInput.value ? dateInput.value : selectedDate;
 }
 
-
-// SWITCH WORKSPACES
-
-function showWorkspace(which) {
-  document.getElementById("mailWorkspace")
-    .classList.toggle("hidden", which !== "mail");
-
-  document.getElementById("backupWorkspace")
-    .classList.toggle("hidden", which !== "backup");
-
-  document.getElementById("mailTab")
-    .classList.toggle("active", which === "mail");
-
-  document.getElementById("backupTab")
-    .classList.toggle("active", which === "backup");
+function getStorageKey() {
+  return `lakshmanWorkspace_${getSelectedDate()}`;
 }
 
-
-// MAIL DASHBOARD
-
-function setMailDate(mode) {
-  mailDate = dateFor(
-    mode,
-    document.getElementById("mailCustom").value
-  );
-
-  ["today", "tomorrow"].forEach(x => {
-    document.getElementById(
-      "mail" + x[0].toUpperCase() + x.slice(1)
-    ).classList.toggle("active", mode === x);
-  });
-
-  if (mode === "custom") {
-    document.getElementById("mailCustom").value = mailDate;
-    document.getElementById("mailCustom").classList.add("active");
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => alert("Copied successfully!"))
+      .catch(() => fallbackCopy(text));
   } else {
-    document.getElementById("mailCustom").classList.remove("active");
+    fallbackCopy(text);
   }
-
-  renderMails();
 }
 
+function fallbackCopy(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
 
-function renderMails() {
-  const q = document.getElementById("mailSearch")
-    .value.toLowerCase();
-
-  const list = templates
-    .map((t, i) => ({t, i}))
-    .filter(({t}) => t.join(" ").toLowerCase().includes(q));
-
-  document.getElementById("templateCount").textContent =
-    `${list.length} of 10 templates ready`;
-
-  const date = pretty(new Date(mailDate + "T12:00:00"));
-
-  document.getElementById("mailCards").innerHTML =
-    list.map(({t, i}) => `
-      <article class="mailcard">
-
-        <div class="cardtop">
-          <span>${String(i+1).padStart(2,"0")} READY</span>
-          <button class="edit"
-            onclick="editTemplate(${i})">✎</button>
-        </div>
-
-        <h3>${esc(t[0])} — ${date}</h3>
-
-        <div class="desc">
-          ${esc(t[1])} — ${date}
-        </div>
-
-        <div class="snippet">
-          ${esc(t[2].replaceAll("{date}", date))}
-        </div>
-
-        <div class="cardfoot">
-          <span>${esc(t[3])}</span>
-          <span>DATE-AWARE</span>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary"
-            onclick="previewTemplate(${i})">
-            Preview ↗
-          </button>
-
-          <button class="btn"
-            onclick="composeTemplate(${i})">
-            ➤ Compose
-          </button>
-        </div>
-
-      </article>
-    `).join("") ||
-    '<div class="empty">No matching templates found.</div>';
-}
-
-
-// EMAIL PREVIEW AND COMPOSE
-
-function openModal(i) {
-  const t = templates[i];
-  const date = pretty(new Date(mailDate + "T12:00:00"));
-
-  document.getElementById("modalTitle").textContent = t[0];
-
-  // Default To recipient
-  document.getElementById("editTo").value = t[3];
-
-  // CC starts empty for each template
-  document.getElementById("editCc").value = "";
-
-  document.getElementById("editSubject").value =
-    t[4] + " — " + date;
-
-  document.getElementById("editBody").value =
-    t[2].replaceAll("{date}", date);
-
-  document.getElementById("modalBack")
-    .classList.remove("hidden");
-}
-
-function previewTemplate(i) {
-  openModal(i);
-}
-
-function composeTemplate(i) {
-  openModal(i);
-}
-
-function editTemplate(i) {
-  openModal(i);
-}
-
-function closeModal() {
-  document.getElementById("modalBack")
-    .classList.add("hidden");
-}
-
-
-// EMAIL TEXT WITH TO AND CC
-
-function emailText() {
-  const to = document.getElementById("editTo").value;
-  const cc = document.getElementById("editCc").value;
-  const subject = document.getElementById("editSubject").value;
-  const body = document.getElementById("editBody").value;
-
-  return `To: ${to}
-Cc: ${cc}
-Subject: ${subject}
-
-${body}`;
-}
-
-
-// COPY EMAIL
-
-async function copyEmail() {
   try {
-    await navigator.clipboard.writeText(emailText());
-    toast("Message copied to clipboard");
-  } catch {
-    toast("Clipboard permission unavailable");
+    document.execCommand("copy");
+    alert("Copied successfully!");
+  } catch (error) {
+    alert("Copy failed. Please copy the text manually.");
   }
+
+  textarea.remove();
 }
 
+function renderTemplates() {
+  const container =
+    getElement("templateContainer") ||
+    getElement("templates") ||
+    getElement("emailTemplates");
 
-// OPEN EMAIL APP WITH TO AND CC
+  if (!container) return;
 
-function openEmail() {
-  const to = document.getElementById("editTo").value
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean)
-    .join(",");
+  const searchInput = getElement("searchInput");
+  const searchText = searchInput ? searchInput.value.toLowerCase() : "";
 
-  const cc = document.getElementById("editCc").value
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean)
-    .join(",");
+  container.innerHTML = "";
 
-  const subject = encodeURIComponent(
-    document.getElementById("editSubject").value
-  );
+  emailTemplates.forEach((template, index) => {
+    if (
+      !template.title.toLowerCase().includes(searchText) &&
+      !template.subject.toLowerCase().includes(searchText)
+    ) return;
 
-  const body = encodeURIComponent(
-    document.getElementById("editBody").value
-  );
+    const card = document.createElement("div");
+    card.className = "template-card";
 
-  const ccPart = cc
-    ? `&cc=${encodeURIComponent(cc)}`
-    : "";
+    card.innerHTML = `
+      <h3>${template.title}</h3>
+      <p>${template.subject}</p>
+      <div class="card-actions">
+        <button type="button" onclick="previewTemplate(${index})">Preview</button>
+        <button type="button" onclick="editTemplate(${index})">Edit</button>
+        <button type="button" onclick="composeTemplate(${index})">Compose</button>
+      </div>
+    `;
 
-  location.href =
-    `mailto:${encodeURIComponent(to)}?subject=${subject}${ccPart}&body=${body}`;
-}
-
-
-// SHEET BACKUP WORKSPACE
-
-function setBackupDate(mode) {
-  backupDate = dateFor(
-    mode,
-    document.getElementById("backupCustom").value
-  );
-
-  ["today", "tomorrow"].forEach(x => {
-    document.getElementById(
-      "backup" + x[0].toUpperCase() + x.slice(1)
-    ).classList.toggle("active", mode === x);
+    container.appendChild(card);
   });
-
-  if (mode === "custom") {
-    document.getElementById("backupCustom").value = backupDate;
-    document.getElementById("backupCustom").classList.add("active");
-  } else {
-    document.getElementById("backupCustom").classList.remove("active");
-  }
-
-  renderSheets();
 }
 
+function previewTemplate(index) {
+  selectedTemplate = index;
+  const template = emailTemplates[index];
 
-// GET COMPLETED CHECKBOXES
+  const modal = getElement("previewModal");
+  const title = getElement("previewTitle");
+  const subject = getElement("previewSubject");
+  const message = getElement("previewMessage");
 
-function checks() {
-  try {
-    return JSON.parse(
-      localStorage.getItem("lak_checks_" + backupDate) || "[]"
-    );
-  } catch {
-    return [];
-  }
+  if (title) title.textContent = template.title;
+  if (subject) subject.textContent = template.subject;
+  if (message) message.textContent = template.message;
+
+  if (modal) modal.style.display = "flex";
+  else alert(`${template.subject}\n\n${template.message}`);
 }
 
+function editTemplate(index) {
+  selectedTemplate = index;
+  const template = emailTemplates[index];
 
-// DISPLAY SHEETS
+  const modal = getElement("editModal");
+  const subject = getElement("editSubject");
+  const message = getElement("editMessage");
+
+  if (subject) subject.value = template.subject;
+  if (message) message.value = template.message;
+
+  const to = getElement("editTo");
+  const cc = getElement("editCc");
+
+  if (to) to.value = "";
+  if (cc) cc.value = "";
+
+  if (modal) modal.style.display = "flex";
+  else alert("Edit modal not found. Check your index.html.");
+}
+
+function saveTemplate() {
+  if (selectedTemplate === null) return;
+
+  const subject = getElement("editSubject");
+  const message = getElement("editMessage");
+
+  if (!subject || !message) return;
+
+  emailTemplates[selectedTemplate].subject = subject.value;
+  emailTemplates[selectedTemplate].message = message.value;
+
+  closeEditModal();
+  renderTemplates();
+  alert("Template updated successfully!");
+}
+
+function composeTemplate(index) {
+  const template = emailTemplates[index];
+  const subject = encodeURIComponent(template.subject);
+  const body = encodeURIComponent(template.message);
+
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function composeEditedEmail() {
+  const to = getElement("editTo");
+  const cc = getElement("editCc");
+  const subject = getElement("editSubject");
+  const message = getElement("editMessage");
+
+  if (!subject || !message) return;
+
+  const emailTo = to ? to.value.trim() : "";
+  const emailCc = cc ? cc.value.trim() : "";
+
+  const url =
+    `mailto:${encodeURIComponent(emailTo)}` +
+    `?subject=${encodeURIComponent(subject.value)}` +
+    `&body=${encodeURIComponent(message.value)}` +
+    (emailCc ? `&cc=${encodeURIComponent(emailCc)}` : "");
+
+  window.location.href = url;
+}
+
+function copyEditedEmail() {
+  const subject = getElement("editSubject");
+  const message = getElement("editMessage");
+
+  if (!subject || !message) return;
+
+  copyText(`Subject: ${subject.value}\n\n${message.value}`);
+}
+
+function closePreviewModal() {
+  const modal = getElement("previewModal");
+  if (modal) modal.style.display = "none";
+}
+
+function closeEditModal() {
+  const modal = getElement("editModal");
+  if (modal) modal.style.display = "none";
+}
 
 function renderSheets() {
-  const date = new Date(backupDate + "T12:00:00");
+  const container = getElement("sheetContainer");
+  if (!container) return;
 
-  document.getElementById("backupDateLabel").textContent =
-    date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-
-  const done = checks();
-
-  document.getElementById("doneCount").textContent =
-    `${done.length} / 20 done`;
-
-  document.getElementById("sheetRows").innerHTML =
-    sheetNames.map((name, i) => `
-      <div class="sheetrow">
-
-        <div class="sheetname">
-
-          <div class="sheeticon">▤</div>
-
-          <div class="sheettitle">
-
-            <strong>${esc(name)}</strong>
-
-            <button class="editname"
-              onclick="renameSheet(${i})">✎</button>
-
-            <small>
-              Sheet ${String(i+1).padStart(2,"0")}
-              · ${pretty(date)}
-            </small>
-
-          </div>
-        </div>
-
-        <button class="btn copybtn"
-          onclick="copySheet(${i})">
-          ▢ Copy name
-        </button>
-
-        <label class="status">
-
-          <input type="checkbox"
-            ${done.includes(i) ? "checked" : ""}
-            onchange="toggleCheck(${i}, this.checked)">
-
-          <span>
-            ${done.includes(i) ? "Completed" : "Not taken"}
-          </span>
-
-        </label>
-
-      </div>
-    `).join("");
-}
-
-
-// COPY SHEET NAME
-
-async function copySheet(i) {
-  const name =
-    `${sheetNames[i]} - ${pretty(new Date(backupDate + "T12:00:00"))}`;
-
-  try {
-    await navigator.clipboard.writeText(name);
-    toast("Sheet name copied");
-  } catch {
-    toast("Clipboard unavailable — allow clipboard access");
-  }
-}
-
-
-// CHECKBOX STATUS
-
-function toggleCheck(i, on) {
-  let a = checks().filter(x => x !== i);
-
-  if (on) {
-    a.push(i);
-  }
-
-  localStorage.setItem(
-    "lak_checks_" + backupDate,
-    JSON.stringify(a)
+  const savedChecks = JSON.parse(
+    localStorage.getItem(getStorageKey()) || "{}"
   );
 
-  renderSheets();
+  container.innerHTML = "";
+
+  sampleSheets.forEach((sheet, index) => {
+    const checked = savedChecks[index] === true;
+
+    const item = document.createElement("div");
+    item.className = "sheet-item";
+
+    item.innerHTML = `
+      <label>
+        <input
+          type="checkbox"
+          ${checked ? "checked" : ""}
+          onchange="toggleSheet(${index}, this.checked)"
+        >
+        <span>${sheet}</span>
+      </label>
+      <button type="button" onclick="renameSheet(${index})">Rename</button>
+      <button type="button" onclick="copySheetName(${index})">Copy</button>
+    `;
+
+    container.appendChild(item);
+  });
 }
 
-
-// UNCHECK ALL
-
-function clearChecks() {
-  localStorage.setItem(
-    "lak_checks_" + backupDate,
-    "[]"
+function toggleSheet(index, checked) {
+  const savedChecks = JSON.parse(
+    localStorage.getItem(getStorageKey()) || "{}"
   );
 
-  renderSheets();
-  toast("All checkboxes cleared for this date");
+  savedChecks[index] = checked;
+  localStorage.setItem(getStorageKey(), JSON.stringify(savedChecks));
 }
 
+function renameSheet(index) {
+  const newName = prompt("Enter new sheet name:", sampleSheets[index]);
 
-// RENAME SHEET
-
-function renameSheet(i) {
-  const n = prompt("Enter sheet name:", sheetNames[i]);
-
-  if (n && n.trim()) {
-    sheetNames[i] = n.trim();
-
-    localStorage.setItem(
-      "lak_sheet_names",
-      JSON.stringify(sheetNames)
-    );
-
+  if (newName && newName.trim()) {
+    sampleSheets[index] = newName.trim();
     renderSheets();
   }
 }
 
-
-// TOAST MESSAGE
-
-function toast(msg) {
-  const el = document.getElementById("toast");
-
-  el.textContent = msg;
-  el.classList.add("show");
-
-  setTimeout(() => {
-    el.classList.remove("show");
-  }, 1900);
+function copySheetName(index) {
+  copyText(sampleSheets[index]);
 }
 
+function clearSheetChecks() {
+  localStorage.removeItem(getStorageKey());
+  renderSheets();
+}
 
-// INITIALIZE WEBSITE
+function copyAllSheetNames() {
+  copyText(sampleSheets.join("\n"));
+}
 
-renderMails();
-renderSheets();
+function initializeWorkspace() {
+  const datePicker = getElement("datePicker");
+
+  if (datePicker) {
+    datePicker.value = selectedDate;
+    datePicker.addEventListener("change", () => {
+      selectedDate = datePicker.value;
+      renderSheets();
+    });
+  }
+
+  const searchInput = getElement("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", renderTemplates);
+  }
+
+  renderTemplates();
+  renderSheets();
+}
+
+window.previewTemplate = previewTemplate;
+window.editTemplate = editTemplate;
+window.composeTemplate = composeTemplate;
+window.saveTemplate = saveTemplate;
+window.composeEditedEmail = composeEditedEmail;
+window.copyEditedEmail = copyEditedEmail;
+window.closePreviewModal = closePreviewModal;
+window.closeEditModal = closeEditModal;
+window.toggleSheet = toggleSheet;
+window.renameSheet = renameSheet;
+window.copySheetName = copySheetName;
+window.clearSheetChecks = clearSheetChecks;
+window.copyAllSheetNames = copyAllSheetNames;
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeWorkspace);
+} else {
+  initializeWorkspace();
+}
