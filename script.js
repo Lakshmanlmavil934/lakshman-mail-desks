@@ -4,7 +4,7 @@ const DEFAULT_TEMPLATES = [
 id:1,
 title:"Project status — weekly",
 subtitle:"Weekly project note",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Project status — weekly — {{DATE}}",
 body:"Hi {{NAME}},\n\nHere is the latest project status as of {{DATE}}.\n\nHighlights:\n• Product review is on track.\n• The team is working through the remaining tasks.\n\nPlease let me know if you need any additional details.\n\nBest regards,\nLakshman"
 },
@@ -12,7 +12,7 @@ body:"Hi {{NAME}},\n\nHere is the latest project status as of {{DATE}}.\n\nHighl
 id:2,
 title:"Design review follow-up",
 subtitle:"A few notes after our design review",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Design review follow-up — {{DATE}}",
 body:"Hi {{NAME}},\n\nThank you for the thoughtful review on {{DATE}}. I have folded the agreed changes into the latest version.\n\nPlease share any further feedback.\n\nBest,\nLakshman"
 },
@@ -20,7 +20,7 @@ body:"Hi {{NAME}},\n\nThank you for the thoughtful review on {{DATE}}. I have fo
 id:3,
 title:"Invoice reminder",
 subtitle:"Invoice follow-up",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Invoice reminder — {{DATE}}",
 body:"Hello,\n\nA quick follow-up on invoice #1842. Could you confirm its expected payment date?\n\nThank you,\nLakshman"
 },
@@ -28,7 +28,7 @@ body:"Hello,\n\nA quick follow-up on invoice #1842. Could you confirm its expect
 id:4,
 title:"Meeting confirmation",
 subtitle:"Confirmed: our conversation",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Meeting confirmation — {{DATE}}",
 body:"Hi {{NAME}},\n\nConfirming our conversation for {{DATE}}. I have set aside the full hour.\n\nLooking forward to speaking with you.\n\nRegards,\nLakshman"
 },
@@ -36,7 +36,7 @@ body:"Hi {{NAME}},\n\nConfirming our conversation for {{DATE}}. I have set aside
 id:5,
 title:"Partner introduction",
 subtitle:"An introduction to a new partner",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Partner introduction — {{DATE}}",
 body:"Hi {{NAME}},\n\nI wanted to connect you with a colleague who may be helpful for your work.\n\nThanks,\nLakshman"
 },
@@ -44,7 +44,7 @@ body:"Hi {{NAME}},\n\nI wanted to connect you with a colleague who may be helpfu
 id:6,
 title:"Request for materials",
 subtitle:"Materials for our next working session",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Request for materials — {{DATE}}",
 body:"Hi {{NAME}},\n\nBefore we meet on {{DATE}}, could you send over the latest research notes and presentation materials?\n\nThank you,\nLakshman"
 },
@@ -52,7 +52,7 @@ body:"Hi {{NAME}},\n\nBefore we meet on {{DATE}}, could you send over the latest
 id:7,
 title:"Decision log update",
 subtitle:"Decision log updated",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Decision log update — {{DATE}}",
 body:"Hi team,\n\nThe decision log has been updated with the outcomes from our latest discussion on {{DATE}}.\n\nRegards,\nLakshman"
 },
@@ -60,7 +60,7 @@ body:"Hi team,\n\nThe decision log has been updated with the outcomes from our l
 id:8,
 title:"Thank-you note",
 subtitle:"Thank you for the conversation",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Thank-you note — {{DATE}}",
 body:"Hi {{NAME}},\n\nThank you for taking the time to speak with me. I appreciated the conversation.\n\nWarm regards,\nLakshman"
 },
@@ -68,7 +68,7 @@ body:"Hi {{NAME}},\n\nThank you for taking the time to speak with me. I apprecia
 id:9,
 title:"Leave request",
 subtitle:"A polite request for leave",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Leave request — {{DATE}}",
 body:"Dear {{NAME}},\n\nI would like to request leave on {{DATE}} due to a personal commitment.\n\nThank you for your understanding.\n\nRegards,\nLakshman"
 },
@@ -76,7 +76,7 @@ body:"Dear {{NAME}},\n\nI would like to request leave on {{DATE}} due to a perso
 id:10,
 title:"Job application follow-up",
 subtitle:"Following up on my application",
-to:"",cc:"",bcc:"",
+to:[],cc:[],
 subject:"Application follow-up — {{DATE}}",
 body:"Dear Hiring Team,\n\nI am writing to follow up on my application and check whether there are any updates regarding the next steps.\n\nSincerely,\nLakshman"
 }
@@ -85,305 +85,460 @@ body:"Dear Hiring Team,\n\nI am writing to follow up on my application and check
 const $ = id => document.getElementById(id);
 
 let templates = loadTemplates();
+
 let drafts = JSON.parse(
- localStorage.getItem("lakshmanMailDrafts") || "[]"
+  localStorage.getItem("lakshmanMailDrafts") || "[]"
 );
+
 let selectedDate = "today";
 let activeId = null;
 let currentView = "templates";
 
 function loadTemplates() {
- try {
-  const saved = JSON.parse(
-   localStorage.getItem("lakshmanMailTemplates")
-  );
-  return Array.isArray(saved) && saved.length
-   ? saved
-   : DEFAULT_TEMPLATES.map(t => ({...t}));
- } catch {
-  return DEFAULT_TEMPLATES.map(t => ({...t}));
- }
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem("lakshmanMailTemplates")
+    );
+
+    return Array.isArray(saved) && saved.length
+      ? saved.map(t => ({
+          ...t,
+          to: getEmailList(t.to),
+          cc: getEmailList(t.cc)
+        }))
+      : DEFAULT_TEMPLATES.map(t => ({...t}));
+
+  } catch {
+    return DEFAULT_TEMPLATES.map(t => ({...t}));
+  }
 }
 
 function saveTemplates() {
- localStorage.setItem(
-  "lakshmanMailTemplates",
-  JSON.stringify(templates)
- );
+  localStorage.setItem(
+    "lakshmanMailTemplates",
+    JSON.stringify(templates)
+  );
+}
+
+function getEmailList(value) {
+  if (Array.isArray(value)) {
+    return value.map(x => String(x).trim()).filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(/[,\n;]/)
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+function renderRecipientInputs(containerId, values) {
+  const container = $(containerId);
+  container.innerHTML = "";
+
+  const emails = getEmailList(values);
+  const list = emails.length ? emails : [""];
+
+  list.forEach(email => {
+    addRecipientInput(containerId, email);
+  });
+}
+
+function addRecipientInput(containerId, value = "") {
+  const container = $(containerId);
+
+  const row = document.createElement("div");
+  row.className = "recipient-row";
+
+  const input = document.createElement("input");
+  input.type = "email";
+  input.placeholder = "name@example.com";
+  input.className = "recipient-input";
+  input.value = value;
+  input.autocomplete = "email";
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove-recipient";
+  remove.textContent = "×";
+  remove.title = "Remove email";
+
+  remove.onclick = () => {
+    if (container.children.length > 1) {
+      row.remove();
+    } else {
+      input.value = "";
+    }
+  };
+
+  row.append(input, remove);
+  container.appendChild(row);
+}
+
+function collectRecipientEmails(containerId) {
+  return [...$(containerId).querySelectorAll("input")]
+    .map(input => input.value.trim())
+    .filter(Boolean);
+}
+
+function formatRecipients(value) {
+  return getEmailList(value).join(", ");
 }
 
 function dateValue() {
- if (selectedDate === "custom" && $("customDate").value) {
-  return new Date($("customDate").value + "T12:00:00");
- }
- const d = new Date();
- if (selectedDate === "tomorrow") d.setDate(d.getDate()+1);
- return d;
+  if (selectedDate === "custom" && $("customDate").value) {
+    return new Date($("customDate").value + "T12:00:00");
+  }
+
+  const d = new Date();
+
+  if (selectedDate === "tomorrow") {
+    d.setDate(d.getDate() + 1);
+  }
+
+  return d;
 }
 
 function formatDate(d) {
- return new Intl.DateTimeFormat("en-GB", {
-  day:"2-digit",month:"2-digit",year:"numeric"
- }).format(d);
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(d);
 }
 
 function replaceDate(s) {
- return (s || "")
-  .replaceAll("{{DATE}}",formatDate(dateValue()))
-  .replaceAll("{{NAME}}","there");
+  return (s || "")
+    .replaceAll("{{DATE}}", formatDate(dateValue()))
+    .replaceAll("{{NAME}}", "there");
 }
 
 function escapeHTML(s) {
- return String(s ?? "").replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",
-  '"':"&quot;","'":"&#39;"
- }[c]));
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
 }
 
 function render() {
- const query = $("searchInput").value.trim().toLowerCase();
- const list = currentView === "drafts" ? drafts : templates;
+  const query = $("searchInput").value.trim().toLowerCase();
 
- $("templateGrid").innerHTML = "";
- $("libraryPanel").hidden = currentView === "drafts";
- $("draftsHeading").hidden = currentView !== "drafts";
+  const list = currentView === "drafts" ? drafts : templates;
 
- $("pageTitle").textContent =
-  currentView === "drafts"
-  ? "Your drafts, ready to continue."
-  : "Ready when you are.";
+  $("templateGrid").innerHTML = "";
 
- $("templateCount").textContent = templates.length;
- $("readyCount").textContent = templates.length;
+  $("libraryPanel").hidden = currentView === "drafts";
+  $("draftsHeading").hidden = currentView !== "drafts";
 
- const shown = list.filter(t =>
-  [t.title,t.subtitle,t.subject,t.to]
-   .join(" ").toLowerCase().includes(query)
- );
+  $("pageTitle").textContent =
+    currentView === "drafts"
+      ? "Your drafts, ready to continue."
+      : "Ready when you are.";
 
- shown.forEach((t,index) => {
-  const card = document.createElement("article");
-  card.className = "template-card";
+  $("templateCount").textContent = templates.length;
+  $("readyCount").textContent = templates.length;
 
-  card.innerHTML = `
-   <div class="card-top">
-    <span class="ready">
-     <span class="number">${String(index+1).padStart(2,"0")}</span>
-     READY
-    </span>
-    <button class="icon-button edit-btn">✎</button>
-   </div>
-   <h3>${escapeHTML(t.title)}</h3>
-   <div class="card-subtitle">${escapeHTML(replaceDate(t.subtitle || ""))}</div>
-   <p class="card-excerpt">${escapeHTML(replaceDate(t.body).replace(/\n/g," "))}</p>
-   <div class="card-meta">
-    <span class="recipient">${escapeHTML(t.to || "No recipient added")}</span>
-    <span>Date-aware</span>
-   </div>
-   <div class="card-actions">
-    <button class="primary-button preview-btn">Preview ↗</button>
-    <button class="secondary-button compose-btn">➤ Compose</button>
-   </div>
-  `;
+  const shown = list.filter(t =>
+    [
+      t.title,
+      t.subtitle,
+      t.subject,
+      formatRecipients(t.to)
+    ].join(" ").toLowerCase().includes(query)
+  );
 
-  card.querySelector(".edit-btn").onclick = () => openEdit(t.id);
-  card.querySelector(".preview-btn").onclick = () => openPreview(t.id);
-  card.querySelector(".compose-btn").onclick = () => compose(t.id);
+  shown.forEach((t, index) => {
+    const card = document.createElement("article");
+    card.className = "template-card";
 
-  $("templateGrid").appendChild(card);
- });
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="ready">
+          <span class="number">${String(index + 1).padStart(2, "0")}</span>
+          READY
+        </span>
+        <button class="icon-button edit-btn">✎</button>
+      </div>
 
- $("emptyState").hidden = shown.length !== 0;
+      <h3>${escapeHTML(t.title)}</h3>
+
+      <div class="card-subtitle">
+        ${escapeHTML(replaceDate(t.subtitle || ""))}
+      </div>
+
+      <p class="card-excerpt">
+        ${escapeHTML(replaceDate(t.body).replace(/\n/g, " "))}
+      </p>
+
+      <div class="card-meta">
+        <span class="recipient">
+          ${escapeHTML(formatRecipients(t.to) || "No recipient added")}
+        </span>
+        <span>Date-aware</span>
+      </div>
+
+      <div class="card-actions">
+        <button class="primary-button preview-btn">Preview ↗</button>
+        <button class="secondary-button compose-btn">➤ Compose</button>
+      </div>
+    `;
+
+    card.querySelector(".edit-btn").onclick = () => openEdit(t.id);
+
+    card.querySelector(".preview-btn").onclick = () => openPreview(t.id);
+
+    card.querySelector(".compose-btn").onclick = () => compose(t.id);
+
+    $("templateGrid").appendChild(card);
+  });
+
+  $("emptyState").hidden = shown.length !== 0;
 }
 
 function showToast(message) {
- const el = $("toast");
- el.textContent = message;
- el.classList.add("show");
- setTimeout(() => el.classList.remove("show"),2200);
+  const el = $("toast");
+
+  el.textContent = message;
+  el.classList.add("show");
+
+  setTimeout(() => el.classList.remove("show"), 2200);
 }
 
 function openModal() {
- $("modalBackdrop").hidden = false;
- document.body.style.overflow = "hidden";
+  $("modalBackdrop").hidden = false;
+  document.body.style.overflow = "hidden";
 }
 
 function closeModal() {
- $("modalBackdrop").hidden = true;
- document.body.style.overflow = "";
+  $("modalBackdrop").hidden = true;
+  document.body.style.overflow = "";
 }
 
 function openEdit(id) {
- activeId = id;
- const t = templates.find(x => x.id === id);
- if (!t) return;
+  activeId = id;
 
- $("modalKicker").textContent = "TEMPLATE DETAILS";
- $("modalTitle").textContent = "Edit template";
- $("editFields").hidden = false;
- $("previewFields").hidden = true;
+  const t = templates.find(x => x.id === id);
 
- $("editTitle").value = t.title;
- $("editTo").value = t.to || "";
- $("editCc").value = t.cc || "";
- $("editBcc").value = t.bcc || "";
- $("editSubject").value = t.subject || "";
- $("editBody").value = t.body || "";
+  if (!t) return;
 
- openModal();
+  $("modalKicker").textContent = "TEMPLATE DETAILS";
+  $("modalTitle").textContent = "Edit template";
+
+  $("editFields").hidden = false;
+  $("previewFields").hidden = true;
+
+  $("editTitle").value = t.title;
+
+  renderRecipientInputs("editTo", t.to);
+  renderRecipientInputs("editCc", t.cc);
+
+  $("editSubject").value = t.subject || "";
+  $("editBody").value = t.body || "";
+
+  openModal();
 }
 
 function openPreview(id) {
- activeId = id;
- const t = templates.find(x => x.id === id);
- if (!t) return;
+  activeId = id;
 
- $("modalKicker").textContent = "MESSAGE PREVIEW";
- $("modalTitle").textContent = t.title;
- $("editFields").hidden = true;
- $("previewFields").hidden = false;
+  const t = templates.find(x => x.id === id);
 
- $("previewTo").textContent = t.to || "Not specified";
- $("previewSubject").textContent = replaceDate(t.subject);
- $("previewBody").textContent = replaceDate(t.body);
+  if (!t) return;
 
- openModal();
+  $("modalKicker").textContent = "MESSAGE PREVIEW";
+  $("modalTitle").textContent = t.title;
+
+  $("editFields").hidden = true;
+  $("previewFields").hidden = false;
+
+  $("previewTo").textContent =
+    formatRecipients(t.to) || "Not specified";
+
+  $("previewCc").textContent =
+    formatRecipients(t.cc) || "Not specified";
+
+  $("previewSubject").textContent = replaceDate(t.subject);
+  $("previewBody").textContent = replaceDate(t.body);
+
+  openModal();
 }
 
 function saveEdit() {
- const t = templates.find(x => x.id === activeId);
- if (!t) return;
+  const t = templates.find(x => x.id === activeId);
 
- t.title = $("editTitle").value.trim() || "Untitled template";
- t.to = $("editTo").value.trim();
- t.cc = $("editCc").value.trim();
- t.bcc = $("editBcc").value.trim();
- t.subject = $("editSubject").value;
- t.body = $("editBody").value;
+  if (!t) return;
 
- saveTemplates();
- render();
- closeModal();
- showToast("Template saved successfully!");
+  t.title = $("editTitle").value.trim() || "Untitled template";
+
+  t.to = collectRecipientEmails("editTo");
+  t.cc = collectRecipientEmails("editCc");
+
+  t.subject = $("editSubject").value;
+  t.body = $("editBody").value;
+
+  saveTemplates();
+
+  render();
+  closeModal();
+
+  showToast("Template saved successfully!");
 }
 
 function compose(id) {
- const t = templates.find(x => x.id === id);
- if (!t) return;
+  const t = templates.find(x => x.id === id);
 
- const params = new URLSearchParams();
+  if (!t) return;
 
- if (t.to) params.set("to",t.to);
- if (t.cc) params.set("cc",t.cc);
- if (t.bcc) params.set("bcc",t.bcc);
+  const params = new URLSearchParams();
 
- params.set("su",replaceDate(t.subject));
- params.set("body",replaceDate(t.body));
+  const toEmails = getEmailList(t.to);
+  const ccEmails = getEmailList(t.cc);
 
- const url =
-  "https://mail.google.com/mail/?view=cm&fs=1&"
-  + params.toString();
+  if (toEmails.length) {
+    params.set("to", toEmails.join(","));
+  }
 
- const win = window.open(
-  url,"_blank","noopener,noreferrer"
- );
+  if (ccEmails.length) {
+    params.set("cc", ccEmails.join(","));
+  }
 
- if (!win) {
-  showToast("Allow pop-ups in Chrome and try again.");
-  return;
- }
+  params.set("su", replaceDate(t.subject));
+  params.set("body", replaceDate(t.body));
 
- drafts.unshift({
-  ...t,
-  id:Date.now(),
-  savedAt:new Date().toISOString()
- });
+  const url =
+    "https://mail.google.com/mail/?view=cm&fs=1&"
+    + params.toString();
 
- drafts = drafts.slice(0,30);
+  const win = window.open(
+    url,
+    "_blank",
+    "noopener,noreferrer"
+  );
 
- localStorage.setItem(
-  "lakshmanMailDrafts",
-  JSON.stringify(drafts)
- );
+  if (!win) {
+    showToast("Allow pop-ups in Chrome and try again.");
+    return;
+  }
 
- showToast("Gmail opened in a new tab!");
+  drafts.unshift({
+    ...t,
+    id: Date.now(),
+    savedAt: new Date().toISOString()
+  });
+
+  drafts = drafts.slice(0, 30);
+
+  localStorage.setItem(
+    "lakshmanMailDrafts",
+    JSON.stringify(drafts)
+  );
+
+  showToast("Gmail opened in a new tab!");
 }
 
 function updateDateButtons() {
- const today = new Date();
- const tomorrow = new Date();
- tomorrow.setDate(today.getDate()+1);
+  const today = new Date();
 
- $("todayLabel").textContent = formatDate(today);
- $("tomorrowLabel").textContent = formatDate(tomorrow);
- $("activeDateLabel").textContent = formatDate(dateValue());
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+
+  $("todayLabel").textContent = formatDate(today);
+  $("tomorrowLabel").textContent = formatDate(tomorrow);
+  $("activeDateLabel").textContent = formatDate(dateValue());
 }
 
 document.querySelectorAll(".date-choice").forEach(btn => {
- btn.addEventListener("click",() => {
-  selectedDate = btn.dataset.date;
+  btn.addEventListener("click", () => {
+    selectedDate = btn.dataset.date;
 
-  document.querySelectorAll(".date-choice")
-   .forEach(b => b.classList.toggle("selected",b === btn));
+    document.querySelectorAll(".date-choice")
+      .forEach(b => b.classList.toggle("selected", b === btn));
 
-  updateDateButtons();
-  render();
- });
+    updateDateButtons();
+    render();
+  });
 });
 
-$("customDate").addEventListener("change",e => {
- if (e.target.value) {
-  selectedDate = "custom";
-  document.querySelectorAll(".date-choice")
-   .forEach(b => b.classList.remove("selected"));
+$("customDate").addEventListener("change", e => {
+  if (e.target.value) {
+    selectedDate = "custom";
 
-  updateDateButtons();
-  render();
- }
+    document.querySelectorAll(".date-choice")
+      .forEach(b => b.classList.remove("selected"));
+
+    updateDateButtons();
+    render();
+  }
 });
 
-$("searchInput").addEventListener("input",render);
+$("searchInput").addEventListener("input", render);
 
 $("saveEdit").onclick = saveEdit;
 $("cancelEdit").onclick = closeModal;
 $("closeModal").onclick = closeModal;
 
-$("modalBackdrop").addEventListener("click",e => {
- if (e.target === $("modalBackdrop")) closeModal();
+/* ADD MORE EMAIL BUTTONS */
+
+document.querySelectorAll("[data-add-recipient]").forEach(button => {
+  button.addEventListener("click", () => {
+    const type = button.dataset.addRecipient;
+
+    const containerId = {
+      to: "editTo",
+      cc: "editCc"
+    }[type];
+
+    if (containerId) {
+      addRecipientInput(containerId);
+    }
+  });
+});
+
+$("modalBackdrop").addEventListener("click", e => {
+  if (e.target === $("modalBackdrop")) {
+    closeModal();
+  }
 });
 
 $("previewEdit").onclick = () => openEdit(activeId);
 
 $("previewCompose").onclick = () => {
- const id = activeId;
- closeModal();
- compose(id);
+  const id = activeId;
+
+  closeModal();
+  compose(id);
 };
 
 function switchView(view) {
- currentView = view;
- document.querySelectorAll(".nav-item")
-  .forEach(b => b.classList.toggle("active",b.dataset.view === view));
+  currentView = view;
 
- $("searchInput").value = "";
- render();
- $("sidebar").classList.remove("open");
+  document.querySelectorAll(".nav-item")
+    .forEach(b =>
+      b.classList.toggle("active", b.dataset.view === view)
+    );
+
+  $("searchInput").value = "";
+
+  render();
+
+  $("sidebar").classList.remove("open");
 }
 
 document.querySelectorAll(".nav-item").forEach(btn => {
- btn.addEventListener("click",() => switchView(btn.dataset.view));
+  btn.addEventListener("click", () => switchView(btn.dataset.view));
 });
 
 $("backTemplates").onclick = () => switchView("templates");
 
 $("menuButton").onclick = () => {
- $("sidebar").classList.toggle("open");
+  $("sidebar").classList.toggle("open");
 };
 
-document.addEventListener("keydown",e => {
- if (e.key === "Escape") closeModal();
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
 });
 
 updateDateButtons();
 render();
-   
