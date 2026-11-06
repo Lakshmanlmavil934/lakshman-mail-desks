@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,8 +25,8 @@
 </div>
 
 <nav class="nav">
-<button id="mailTab" class="active" onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
-<button id="backupTab" onclick="showWorkspace('backup')">▤ Sheet Backup</button>
+<button type="button" id="mailTab" class="active" onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
+<button type="button" id="backupTab" onclick="showWorkspace('backup')">▤ Sheet Backup</button>
 </nav>
 </header>
 
@@ -46,8 +45,8 @@ Your drafts and edits stay in this browser.
 <div class="toolbar">
 <strong>Date for drafts</strong>
 <div class="datepick">
-<button class="pill active" id="mailToday" onclick="setMailDate('today')">Today</button>
-<button class="pill" id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
+<button type="button" class="pill active" id="mailToday" onclick="setMailDate('today')">Today</button>
+<button type="button" class="pill" id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
 <input class="pill" type="date" id="mailCustom" onchange="setMailDate('custom')">
 </div>
 </div>
@@ -93,8 +92,8 @@ then mark its status here. Checkmarks are saved for the selected date.
 </div>
 
 <div class="datepick">
-<button class="pill active" id="backupToday" onclick="setBackupDate('today')">Today</button>
-<button class="pill" id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
+<button type="button" class="pill active" id="backupToday" onclick="setBackupDate('today')">Today</button>
+<button type="button" class="pill" id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
 <input class="pill" type="date" id="backupCustom" onchange="setBackupDate('custom')">
 </div>
 </div>
@@ -104,7 +103,7 @@ then mark its status here. Checkmarks are saved for the selected date.
 <h2>Your 20 sheets <span class="count" id="doneCount">0 / 20 done</span></h2>
 <p class="sub">Copy the dated sheet name and tick the box after backup.</p>
 </div>
-<button class="btn" onclick="clearChecks()">× Uncheck all</button>
+<button type="button" class="btn" onclick="clearChecks()">× Uncheck all</button>
 </div>
 
 <div class="sheetlist">
@@ -129,24 +128,24 @@ then mark its status here. Checkmarks are saved for the selected date.
 <div class="modal">
 <h2 id="modalTitle">Message preview</h2>
 
-<label>To (multiple email addresses separated by commas)</label>
+<label for="editTo">To (multiple email addresses separated by commas)</label>
 <input id="editTo" type="text"
 placeholder="name1@example.com, name2@example.com">
 
-<label>Cc (multiple email addresses separated by commas)</label>
+<label for="editCc">Cc (multiple email addresses separated by commas)</label>
 <input id="editCc" type="text"
 placeholder="cc1@example.com, cc2@example.com">
 
-<label>Subject</label>
+<label for="editSubject">Subject</label>
 <input id="editSubject">
 
-<label>Message</label>
+<label for="editBody">Message</label>
 <textarea id="editBody"></textarea>
 
 <div class="modalactions">
-<button class="btn" onclick="closeModal()">Cancel</button>
-<button class="btn" onclick="copyEmail()">Copy message</button>
-<button class="btn primary" onclick="openEmail()">Open email app</button>
+<button type="button" class="btn" onclick="closeModal()">Cancel</button>
+<button type="button" class="btn" onclick="copyEmail()">Copy message</button>
+<button type="button" class="btn primary" onclick="openEmail()">Open email app</button>
 </div>
 
 </div>
