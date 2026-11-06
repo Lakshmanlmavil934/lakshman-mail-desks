@@ -6,51 +6,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0e5963">
   <title>Lakshman Mail Desk</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div class="app-shell">
 
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark">L</div>
-      <div>
-        <b>Lakshman</b>
-        <small>MAIL DESK</small>
-      </div>
+      <div><b>Lakshman</b><small>MAIL DESK</small></div>
     </div>
 
     <div class="side-label">WORKSPACE</div>
-
     <button class="nav-item active" data-view="templates">
-      <span>▤</span> Templates <em id="templateCount">10</em>
+      <span>▤</span> Mail Templates <em id="templateCount">10</em>
     </button>
-
     <button class="nav-item" data-view="drafts">
       <span>▱</span> Drafts <i class="dot"></i>
+    </button>
+    <button class="nav-item" data-view="workspace2">
+      <span>▦</span> Workspace 2 <em>22</em>
     </button>
 
     <div class="sidebar-bottom">
       <div class="avatar">L</div>
-      <div>
-        <b>Lakshman</b>
-        <small>Personal workspace</small>
-      </div>
+      <div><b>Lakshman</b><small>Personal workspace</small></div>
     </div>
   </aside>
 
   <main class="main">
-
     <header class="topbar">
       <button class="menu-button" id="menuButton">☰</button>
       <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
-
       <div class="profile">
         <span>Lakshman<br><small>Focused mode</small></span>
         <div class="avatar">L</div>
@@ -60,50 +50,40 @@
     <section class="intro">
       <h1 id="pageTitle">Ready when you are.</h1>
 
-      <div class="date-row">
+      <div class="date-row" id="mailDateRow">
         <span class="date-label">▦ &nbsp; Date for drafts</span>
-
         <button class="date-choice selected" data-date="today">
           Today <small id="todayLabel"></small>
         </button>
-
         <button class="date-choice" data-date="tomorrow">
           Tomorrow <small id="tomorrowLabel"></small>
         </button>
-
         <label class="custom-date">
           Custom date
           <input type="date" id="customDate">
         </label>
       </div>
-
-      <p class="date-note">
+      <p class="date-note" id="mailDateNote">
         <span></span> Drafts will use <b id="activeDateLabel"></b>
       </p>
     </section>
 
+    <!-- MAIL TEMPLATES LIBRARY -->
     <section class="library-panel" id="libraryPanel">
       <div class="panel-kicker">✧ &nbsp; YOUR LIBRARY</div>
-
       <h2>Ten messages, already thought<br class="desktop-break"> through.</h2>
-
-      <p>
-        Choose a template, check the details, and let Gmail do the last mile.
-        Your words stay yours.
-      </p>
-
+      <p>Choose a template, check the details, and let Gmail do the last mile. Your words stay yours.</p>
       <div class="search-wrap">
         <span>⌕</span>
-        <input id="searchInput" type="search"
-          placeholder="Search title, recipient, subject...">
+        <input id="searchInput" type="search" placeholder="Search title, recipient, subject...">
       </div>
-
       <div class="panel-foot">
         <span>✉ &nbsp; <b id="readyCount">10</b> of 10 templates ready</span>
         <span>◷ &nbsp; Local changes save instantly</span>
       </div>
     </section>
 
+    <!-- DRAFTS HEADING -->
     <section class="drafts-heading" id="draftsHeading" hidden>
       <div>
         <div class="panel-kicker">✧ &nbsp; YOUR WORKSPACE</div>
@@ -113,8 +93,49 @@
       <button class="secondary-button" id="backTemplates">← Templates</button>
     </section>
 
-    <section class="template-grid" id="templateGrid"></section>
+    <!-- WORKSPACE 2 -->
+    <section class="workspace2-panel" id="workspace2Panel" hidden>
+      <div class="panel-kicker">✧ &nbsp; WORKSPACE 2</div>
+      <h2>Sheet Name Manager</h2>
+      <p class="workspace-description">
+        Manage your saved sheet names. Edit, copy or add sheet names whenever you need.
+      </p>
 
+      <div class="sheet-date-box">
+        <div class="sheet-date-title">▦ &nbsp; Select date</div>
+        <div class="date-row">
+          <button class="date-choice selected" data-w2-date="today">
+            Today <small id="w2TodayLabel"></small>
+          </button>
+          <button class="date-choice" data-w2-date="tomorrow">
+            Tomorrow <small id="w2TomorrowLabel"></small>
+          </button>
+          <label class="custom-date">
+            Custom date
+            <input type="date" id="w2CustomDate">
+          </label>
+        </div>
+        <p class="date-note">
+          <span></span> Selected date: <b id="w2ActiveDateLabel"></b>
+        </p>
+      </div>
+
+      <div class="sheet-toolbar">
+        <div>
+          <b id="sheetCount">22 sheet names</b>
+          <small>Tick a checkbox to select a sheet.</small>
+        </div>
+        <button class="secondary-button" id="clearAllSheets">Clear All</button>
+      </div>
+
+      <div class="sheet-list" id="sheetList"></div>
+
+      <button class="primary-button add-sheet-button" id="addSheetButton">
+        + Add New Sheet
+      </button>
+    </section>
+
+    <section class="template-grid" id="templateGrid"></section>
     <section class="empty-state" id="emptyState" hidden>
       No matching templates found. Try another search.
     </section>
@@ -124,111 +145,64 @@
       <span>•</span>
       Your changes stay in this browser
     </footer>
-
   </main>
 </div>
 
-<!-- EDIT MODAL -->
-
+<!-- EDIT / PREVIEW MODAL -->
 <div class="modal-backdrop" id="modalBackdrop" hidden>
-
   <section class="modal" role="dialog" aria-modal="true">
-
     <div class="modal-head">
       <div>
         <div class="panel-kicker" id="modalKicker">TEMPLATE DETAILS</div>
         <h2 id="modalTitle">Edit template</h2>
       </div>
-
       <button class="close-button" id="closeModal">×</button>
     </div>
 
     <div id="editFields">
-
-      <label>
-        Template title
-        <input id="editTitle">
-      </label>
-
-      <!-- TO EMAILS -->
+      <label>Template title<input id="editTitle"></label>
 
       <div class="recipient-group">
         <div class="recipient-heading">
           <label>To</label>
-          <button type="button" class="add-recipient"
-            data-add-recipient="to">+ Add More</button>
+          <button type="button" class="add-recipient" data-add-recipient="to">+ Add More</button>
         </div>
-
         <div id="editTo"></div>
       </div>
-
-      <!-- CC EMAILS -->
 
       <div class="recipient-group">
         <div class="recipient-heading">
           <label>CC</label>
-          <button type="button" class="add-recipient"
-            data-add-recipient="cc">+ Add More</button>
+          <button type="button" class="add-recipient" data-add-recipient="cc">+ Add More</button>
         </div>
-
         <div id="editCc"></div>
       </div>
 
-      <label>
-        Subject
-        <input id="editSubject">
-      </label>
-
-      <label>
-        Email message
-        <textarea id="editBody" rows="9"></textarea>
-      </label>
+      <label>Subject<input id="editSubject"></label>
+      <label>Email message<textarea id="editBody" rows="9"></textarea></label>
 
       <div class="modal-actions">
         <button class="secondary-button" id="cancelEdit">Cancel</button>
         <button class="primary-button" id="saveEdit">Save changes</button>
       </div>
-
     </div>
-
-    <!-- PREVIEW -->
 
     <div id="previewFields" hidden>
-
       <div class="preview-meta">
-        <div>
-          <small>TO</small>
-          <p id="previewTo"></p>
-        </div>
-
-        <div>
-          <small>CC</small>
-          <p id="previewCc"></p>
-        </div>
-
-        <div>
-          <small>SUBJECT</small>
-          <p id="previewSubject"></p>
-        </div>
+        <div><small>TO</small><p id="previewTo"></p></div>
+        <div><small>CC</small><p id="previewCc"></p></div>
+        <div><small>SUBJECT</small><p id="previewSubject"></p></div>
       </div>
-
       <article class="preview-body" id="previewBody"></article>
-
       <div class="modal-actions">
         <button class="secondary-button" id="previewEdit">Edit template</button>
-        <button class="primary-button" id="previewCompose">
-          ↗ &nbsp; Compose in Gmail
-        </button>
+        <button class="primary-button" id="previewCompose">↗ &nbsp; Compose in Gmail</button>
       </div>
-
     </div>
-
   </section>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
-
 <script src="script.js"></script>
-
 </body>
 </html>
