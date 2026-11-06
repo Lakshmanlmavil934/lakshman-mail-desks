@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0e5963">
+  <title>Lakshman Mail Desk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="brand-mark">L</div><div><b>Lakshman</b><small>MAIL DESK</small></div></div>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item active" data-view="templates"><span>▤</span> Templates <em id="templateCount">10</em></button>
+      <button class="nav-item" data-view="drafts"><span>▱</span> Drafts <i class="dot"></i></button>
+      <div class="sidebar-bottom"><div class="avatar">L</div><div><b>Lakshman</b><small>Personal workspace</small></div></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Open menu">☰</button>
+        <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
+        <div class="profile"><span>Lakshman<br><small>Focused mode</small></span><div class="avatar">L</div></div>
+      </header>
+
+      <section class="intro">
+        <h1 id="pageTitle">Ready when you are.</h1>
+        <div class="date-row">
+          <span class="date-label">▦ &nbsp; Date for drafts</span>
+          <button class="date-choice selected" data-date="today">Today <small id="todayLabel"></small></button>
+          <button class="date-choice" data-date="tomorrow">Tomorrow <small id="tomorrowLabel"></small></button>
+          <label class="custom-date">Custom date <input type="date" id="customDate"></label>
+        </div>
+        <p class="date-note"><span></span> Drafts will use <b id="activeDateLabel"></b></p>
+      </section>
+
+      <section class="library-panel" id="libraryPanel">
+        <div class="panel-kicker">✧ &nbsp; YOUR LIBRARY</div>
+        <h2>Ten messages, already thought<br class="desktop-break"> through.</h2>
+        <p>Choose a template, check the details, and let Gmail do the last mile. Your words stay yours.</p>
+        <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search title, recipient, subject..."></div>
+        <div class="panel-foot"><span>✉ &nbsp; <b id="readyCount">10</b> of 10 templates ready</span><span>◷ &nbsp; Local changes save instantly</span></div>
+      </section>
+
+      <section class="drafts-heading" id="draftsHeading" hidden>
+        <div><div class="panel-kicker">✧ &nbsp; YOUR WORKSPACE</div><h2>Saved drafts</h2><p>Your locally saved email drafts appear here.</p></div>
+        <button class="secondary-button" id="backTemplates">← Templates</button>
+      </section>
+
+      <section class="template-grid" id="templateGrid"></section>
+      <section class="empty-state" id="emptyState" hidden>No matching templates found. Try another search.</section>
+      <footer>Made for thoughtful communication <span>•</span> Your changes stay in this browser</footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head"><div><div class="panel-kicker" id="modalKicker">TEMPLATE DETAILS</div><h2 id="modalTitle">Edit template</h2></div><button class="close-button" id="closeModal" aria-label="Close">×</button></div>
+      <div id="editFields">
+        <label>Template title<input id="editTitle"></label>
+        <div class="two-col"><label>To<input id="editTo" type="text" placeholder="name@example.com"></label><label>CC<input id="editCc" type="text" placeholder="Optional"></label></div>
+        <label>BCC<input id="editBcc" type="text" placeholder="Optional"></label>
+        <label>Subject<input id="editSubject"></label>
+        <label>Email message<textarea id="editBody" rows="9"></textarea></label>
+        <div class="modal-actions"><button class="secondary-button" id="cancelEdit">Cancel</button><button class="primary-button" id="saveEdit">Save changes</button></div>
+      </div>
+      <div id="previewFields" hidden>
+        <div class="preview-meta"><div><small>TO</small><p id="previewTo"></p></div><div><small>SUBJECT</small><p id="previewSubject"></p></div></div>
+        <article class="preview-body" id="previewBody"></article>
+        <div class="modal-actions"><button class="secondary-button" id="previewEdit">Edit template</button><button class="primary-button" id="previewCompose">↗ &nbsp; Compose in Gmail</button></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
