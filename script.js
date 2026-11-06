@@ -1,370 +1,363 @@
-/* =========================================
-   LAKSHMAN MAIL DESK
-   Main application script
-========================================= */
 
-const $ = (id) => document.getElementById(id);
+"use strict";
 
-const STORAGE = {
-  templates: "lakshman_mail_templates_v1",
-  drafts: "lakshman_mail_drafts_v1",
-  sheets: "lakshman_mail_sheets_v1"
+/* =====================================
+   LAKSHMAN MAIL DESK - FIXED VERSION
+===================================== */
+
+const $ = id => document.getElementById(id);
+
+const KEYS = {
+  templates: "lakshman_templates_fixed_2",
+  drafts: "lakshman_drafts_fixed_2",
+  sheets: "lakshman_sheets_fixed_2"
 };
 
-function loadData(key, fallback) {
+function read(key, fallback) {
   try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch (error) {
+    const value = JSON.parse(localStorage.getItem(key));
+    return value === null ? fallback : value;
+  } catch {
     return fallback;
   }
 }
 
-function saveData(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+function save(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    notify("Unable to save. Check browser storage.");
+  }
 }
 
-/* =========================================
-   DEFAULT EMAIL TEMPLATES
-========================================= */
+function notify(message) {
+  const toast = $("toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(() => toast.classList.remove("show"), 2500);
+}
 
-const DEFAULT_TEMPLATES = [
+/* =====================================
+   ORIGINAL 10 TEMPLATES
+===================================== */
+
+const defaultTemplates = [
   {
     id: 1,
-    title: "Work Update",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Daily Work Update - {{DATE}}",
-    body: "Hi Team,\n\nPlease find the work update for {{DATE}}.\n\nRegards,\nLakshman"
+    title: "Project status — weekly",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Weekly project status — {{DATE}}",
+    body: "Hi Team,\n\nHere is the weekly project status update for {{DATE}}.\n\nCompleted:\n\nIn Progress:\n\nPending:\n\nRegards,\nLakshman"
   },
   {
     id: 2,
-    title: "Leave Request",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Leave Request - {{DATE}}",
-    body: "Hi Team,\n\nI would like to request leave on {{DATE}} due to personal reasons.\n\nKindly approve my request.\n\nRegards,\nLakshman"
+    title: "Design review follow-up",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Follow-up: Design review",
+    body: "Hi Team,\n\nI am following up on the design review.\n\nPlease share your feedback and let me know if any changes are required.\n\nRegards,\nLakshman"
   },
   {
     id: 3,
-    title: "Work From Home",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Work From Home Request - {{DATE}}",
-    body: "Hi Team,\n\nI would like to request work from home on {{DATE}}.\n\nPlease let me know if any further details are required.\n\nRegards,\nLakshman"
+    title: "Invoice reminder",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Invoice payment reminder — {{DATE}}",
+    body: "Hi Team,\n\nThis is a gentle reminder regarding the pending invoice.\n\nKindly check and share the payment status.\n\nRegards,\nLakshman"
   },
   {
     id: 4,
-    title: "Meeting Request",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Meeting Request - {{DATE}}",
-    body: "Hi Team,\n\nI would like to schedule a meeting on {{DATE}}.\n\nPlease share your availability.\n\nRegards,\nLakshman"
+    title: "Meeting confirmation",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Meeting confirmation — {{DATE}}",
+    body: "Hi Team,\n\nThis email is to confirm our meeting scheduled for {{DATE}}.\n\nPlease let me know if there are any changes.\n\nRegards,\nLakshman"
   },
   {
     id: 5,
-    title: "Follow Up",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Follow Up - {{DATE}}",
-    body: "Hi Team,\n\nI am following up regarding the previous communication.\n\nPlease share an update when possible.\n\nRegards,\nLakshman"
+    title: "Partner introduction",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Introduction and collaboration",
+    body: "Hi,\n\nI would like to introduce myself and discuss possible collaboration opportunities.\n\nLooking forward to hearing from you.\n\nRegards,\nLakshman"
   },
   {
     id: 6,
-    title: "Task Completion",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Task Completed - {{DATE}}",
-    body: "Hi Team,\n\nThe assigned task has been completed successfully on {{DATE}}.\n\nPlease let me know if anything else is required.\n\nRegards,\nLakshman"
+    title: "Request for materials",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Request for required materials",
+    body: "Hi Team,\n\nCould you please share the required materials and documents?\n\nThank you for your support.\n\nRegards,\nLakshman"
   },
   {
     id: 7,
-    title: "Issue Report",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Issue Report - {{DATE}}",
-    body: "Hi Team,\n\nI would like to report an issue.\n\nIssue details:\n\nPlease check and help resolve this issue.\n\nRegards,\nLakshman"
+    title: "Decision log update",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Decision log update — {{DATE}}",
+    body: "Hi Team,\n\nPlease find the decision log update for {{DATE}}.\n\nDecisions:\n\nAction Items:\n\nPending Clarifications:\n\nRegards,\nLakshman"
   },
   {
     id: 8,
-    title: "Status Update",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Status Update - {{DATE}}",
-    body: "Hi Team,\n\nHere is the current status update as of {{DATE}}.\n\nStatus:\n\nRegards,\nLakshman"
+    title: "Thank-you note",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Thank you for your support",
+    body: "Hi Team,\n\nThank you for your valuable support and assistance.\n\nI really appreciate your help.\n\nRegards,\nLakshman"
   },
   {
     id: 9,
-    title: "Thank You",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Thank You",
-    body: "Hi Team,\n\nThank you for your support and assistance.\n\nI really appreciate your help.\n\nRegards,\nLakshman"
+    title: "Leave request",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Leave request — {{DATE}}",
+    body: "Hi Team,\n\nI would like to request leave on {{DATE}} due to personal reasons.\n\nKindly consider and approve my request.\n\nRegards,\nLakshman"
   },
   {
     id: 10,
-    title: "General Email",
-    to: [""],
-    cc: [""],
-    bcc: [""],
-    subject: "Regarding - {{DATE}}",
-    body: "Hi Team,\n\nI am writing this email regarding the below details.\n\nPlease check and let me know.\n\nRegards,\nLakshman"
+    title: "Job application follow-up",
+    to: [""], cc: [""], bcc: [""],
+    subject: "Follow-up on job application",
+    body: "Dear Hiring Team,\n\nI am following up regarding my job application.\n\nI would appreciate an update on the application status.\n\nThank you.\n\nRegards,\nLakshman"
   }
 ];
 
-let templates = loadData(STORAGE.templates, DEFAULT_TEMPLATES);
-let drafts = loadData(STORAGE.drafts, []);
+let templates = read(KEYS.templates, defaultTemplates);
+let drafts = read(KEYS.drafts, []);
 
-let currentTemplateId = null;
-let currentView = "templates";
-let toastTimer;
+if (!Array.isArray(templates)) templates = defaultTemplates;
+if (!Array.isArray(drafts)) drafts = [];
 
-/* =========================================
-   DATE MANAGEMENT - WORKSPACE 1
-========================================= */
+templates = templates.map((t, i) => ({
+  id: t.id ?? i + 1,
+  title: t.title || "Untitled template",
+  to: Array.isArray(t.to) ? t.to : [""],
+  cc: Array.isArray(t.cc) ? t.cc : [""],
+  bcc: Array.isArray(t.bcc) ? t.bcc : [""],
+  subject: t.subject || "",
+  body: t.body || ""
+}));
 
-let mailDateMode = "today";
-let mailCustomDate = "";
+let currentId = null;
+let mailMode = "today";
+let mailCustom = "";
+let sheetMode = "today";
+let sheetCustom = "";
 
-function dateValue(mode, custom) {
-  const date = new Date();
+/* =====================================
+   DATE FUNCTIONS
+===================================== */
 
-  if (mode === "tomorrow") {
-    date.setDate(date.getDate() + 1);
-  }
-
+function getDate(mode, custom) {
   if (mode === "custom" && custom) {
     return new Date(custom + "T12:00:00");
   }
 
+  const date = new Date();
+  if (mode === "tomorrow") date.setDate(date.getDate() + 1);
   return date;
 }
 
-function formatDate(date) {
-  const d = String(date.getDate()).padStart(2, "0");
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const y = date.getFullYear();
-  return `${d}/${m}/${y}`;
+function displayDate(date) {
+  return [
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    date.getFullYear()
+  ].join("/");
 }
 
-function formatInputDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function inputDate(date) {
+  return date.getFullYear() + "-" +
+    String(date.getMonth() + 1).padStart(2, "0") + "-" +
+    String(date.getDate()).padStart(2, "0");
 }
 
-function getMailDate() {
-  return formatDate(dateValue(mailDateMode, mailCustomDate));
+function mailDate() {
+  return displayDate(getDate(mailMode, mailCustom));
 }
 
-function updateMailDateUI() {
+function sheetDate() {
+  return displayDate(getDate(sheetMode, sheetCustom));
+}
+
+function updateMailDate() {
   const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  $("todayLabel").textContent = formatDate(today);
-  $("tomorrowLabel").textContent = formatDate(tomorrow);
+  $("todayLabel").textContent = displayDate(today);
+  $("tomorrowLabel").textContent = displayDate(tomorrow);
+  $("customDate").value = mailCustom;
 
   document.querySelectorAll("[data-date]").forEach(button => {
+    button.classList.toggle("selected", button.dataset.date === mailMode);
+  });
+
+  $("activeDateLabel").textContent = mailDate();
+}
+
+function updateSheetDate() {
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  $("w2TodayLabel").textContent = displayDate(today);
+  $("w2TomorrowLabel").textContent = displayDate(tomorrow);
+  $("w2CustomDate").value = sheetCustom;
+
+  document.querySelectorAll("[data-w2-date]").forEach(button => {
     button.classList.toggle(
       "selected",
-      button.dataset.date === mailDateMode
+      button.dataset.w2Date === sheetMode
     );
   });
 
-  $("customDate").value = mailCustomDate;
-  $("activeDateLabel").textContent = getMailDate();
+  $("w2ActiveDateLabel").textContent = sheetDate();
 }
 
 document.querySelectorAll("[data-date]").forEach(button => {
   button.addEventListener("click", () => {
-    mailDateMode = button.dataset.date;
-    updateMailDateUI();
+    mailMode = button.dataset.date;
+    updateMailDate();
     renderTemplates();
   });
 });
 
 $("customDate").addEventListener("change", event => {
   if (!event.target.value) return;
-
-  mailCustomDate = event.target.value;
-  mailDateMode = "custom";
-
-  updateMailDateUI();
+  mailCustom = event.target.value;
+  mailMode = "custom";
+  updateMailDate();
   renderTemplates();
 });
 
-/* =========================================
-   DATE MANAGEMENT - WORKSPACE 2
-========================================= */
-
-let w2DateMode = "today";
-let w2CustomDate = "";
-
-function getW2Date() {
-  return formatDate(dateValue(w2DateMode, w2CustomDate));
-}
-
-function updateW2DateUI() {
-  const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  $("w2TodayLabel").textContent = formatDate(today);
-  $("w2TomorrowLabel").textContent = formatDate(tomorrow);
-
-  document.querySelectorAll("[data-w2-date]").forEach(button => {
-    button.classList.toggle(
-      "selected",
-      button.dataset.w2Date === w2DateMode
-    );
-  });
-
-  $("w2CustomDate").value = w2CustomDate;
-  $("w2ActiveDateLabel").textContent = getW2Date();
-}
-
 document.querySelectorAll("[data-w2-date]").forEach(button => {
   button.addEventListener("click", () => {
-    w2DateMode = button.dataset.w2Date;
-    updateW2DateUI();
+    sheetMode = button.dataset.w2Date;
+    updateSheetDate();
     renderSheets();
   });
 });
 
 $("w2CustomDate").addEventListener("change", event => {
   if (!event.target.value) return;
-
-  w2CustomDate = event.target.value;
-  w2DateMode = "custom";
-
-  updateW2DateUI();
+  sheetCustom = event.target.value;
+  sheetMode = "custom";
+  updateSheetDate();
   renderSheets();
 });
 
-/* =========================================
-   TOAST MESSAGE
-========================================= */
+/* =====================================
+   TEMPLATE RENDERING
+===================================== */
 
-function showToast(message) {
-  const toast = $("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-
-  clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2300);
-}
-
-/* =========================================
-   TEMPLATE MANAGEMENT
-========================================= */
-
-function cleanArray(array) {
-  return (Array.isArray(array) ? array : [""])
-    .map(value => String(value || ""));
-}
-
-function normalizeTemplate(template) {
-  return {
-    id: template.id,
-    title: template.title || "Untitled",
-    to: cleanArray(template.to),
-    cc: cleanArray(template.cc),
-    bcc: cleanArray(template.bcc),
-    subject: template.subject || "",
-    body: template.body || ""
-  };
-}
-
-templates = templates.map(normalizeTemplate);
-
-function replaceDate(text) {
-  return String(text || "").replace(/\{\{DATE\}\}/g, getMailDate());
+function dated(text) {
+  return String(text || "").replace(/\{\{DATE\}\}/g, mailDate());
 }
 
 function renderTemplates() {
   const grid = $("templateGrid");
-  const search = $("searchInput").value.toLowerCase();
+  const search = $("searchInput").value.toLowerCase().trim();
 
   grid.innerHTML = "";
 
-  const filtered = templates.filter(template => {
-    const text = [
-      template.title,
-      template.subject,
-      ...template.to,
-      ...template.cc,
-      ...template.bcc
-    ].join(" ").toLowerCase();
-
-    return text.includes(search);
-  });
+  const results = templates.filter(t =>
+    [t.title, t.subject, t.body, ...t.to, ...t.cc, ...t.bcc]
+      .join(" ").toLowerCase().includes(search)
+  );
 
   $("readyCount").textContent = templates.length;
   $("templateCount").textContent = templates.length;
+  $("emptyState").hidden = results.length > 0;
 
-  $("emptyState").hidden = filtered.length !== 0;
-
-  filtered.forEach((template, index) => {
+  results.forEach((t, index) => {
     const card = document.createElement("article");
     card.className = "template-card";
 
-    const number = String(index + 1).padStart(2, "0");
-
-    const heading = document.createElement("div");
-    heading.className = "card-number";
-    heading.textContent = `TEMPLATE ${number}`;
+    const number = document.createElement("div");
+    number.className = "card-number";
+    number.textContent = "TEMPLATE " + String(index + 1).padStart(2, "0");
 
     const title = document.createElement("h3");
-    title.textContent = template.title;
+    title.textContent = t.title;
 
     const subject = document.createElement("p");
     subject.className = "card-subject";
-    subject.textContent = replaceDate(template.subject);
+    subject.textContent = dated(t.subject);
 
-    const description = document.createElement("p");
-    description.className = "card-description";
-    description.textContent = template.body.substring(0, 105) + "...";
+    const body = document.createElement("p");
+    body.className = "card-description";
+    body.textContent = t.body.slice(0, 110) + "...";
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
 
     const preview = document.createElement("button");
     preview.className = "primary-button";
-    preview.textContent = "View Details";
-    preview.addEventListener("click", () => openPreview(template.id));
+    preview.textContent = "Preview";
+    preview.onclick = () => openPreview(t.id);
 
     const edit = document.createElement("button");
     edit.className = "secondary-button";
     edit.textContent = "Edit";
-    edit.addEventListener("click", () => openEditor(template.id));
+    edit.onclick = () => openEditor(t.id);
 
     actions.append(preview, edit);
-    card.append(heading, title, subject, description, actions);
+    card.append(number, title, subject, body, actions);
     grid.appendChild(card);
   });
 }
 
 $("searchInput").addEventListener("input", renderTemplates);
 
-/* =========================================
-   MODAL MANAGEMENT
-========================================= */
+/* =====================================
+   RECIPIENT INPUTS
+===================================== */
 
-function openModal() {
+function addRecipient(type, value = "") {
+  const container = $(type + "Recipients");
+
+  const row = document.createElement("div");
+  row.className = "recipient-row";
+
+  const input = document.createElement("input");
+  input.type = "email";
+  input.placeholder = "Enter email address";
+  input.value = value;
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove-recipient";
+  remove.textContent = "×";
+
+  remove.onclick = () => {
+    if (container.children.length > 1) row.remove();
+    else input.value = "";
+  };
+
+  row.append(input, remove);
+  container.appendChild(row);
+}
+
+function showRecipients(type, values) {
+  const container = $(type + "Recipients");
+  container.innerHTML = "";
+
+  (values && values.length ? values : [""])
+    .forEach(value => addRecipient(type, value));
+}
+
+function readRecipients(type) {
+  return [...$(type + "Recipients").querySelectorAll("input")]
+    .map(input => input.value.trim())
+    .filter(Boolean);
+}
+
+document.querySelectorAll("[data-add-recipient]").forEach(button => {
+  button.addEventListener("click", () => {
+    addRecipient(button.dataset.addRecipient);
+  });
+});
+
+/* =====================================
+   MODAL AND EDITING
+===================================== */
+
+function showModal() {
   $("modalBackdrop").hidden = false;
   document.body.style.overflow = "hidden";
 }
@@ -375,244 +368,170 @@ function closeModal() {
 }
 
 function openEditor(id) {
-  const template = templates.find(item => item.id === id);
-  if (!template) return;
+  const t = templates.find(item => item.id === id);
+  if (!t) return;
 
-  currentTemplateId = id;
+  currentId = id;
 
-  $("modalKicker").textContent = "EDIT TEMPLATE";
-  $("modalTitle").textContent = template.title;
+  $("modalKicker").textContent = "TEMPLATE DETAILS";
+  $("modalTitle").textContent = "Edit template";
+  $("editTitle").value = t.title;
+  $("editSubject").value = dated(t.subject);
+  $("editBody").value = dated(t.body);
 
-  $("editTitle").value = template.title;
-  $("editSubject").value = replaceDate(template.subject);
-  $("editBody").value = replaceDate(template.body);
-
-  renderRecipientFields("to", template.to);
-  renderRecipientFields("cc", template.cc);
-  renderRecipientFields("bcc", template.bcc);
+  showRecipients("to", t.to);
+  showRecipients("cc", t.cc);
+  showRecipients("bcc", t.bcc);
 
   $("editFields").hidden = false;
   $("previewFields").hidden = true;
 
-  openModal();
+  showModal();
 }
 
 function openPreview(id) {
-  const template = templates.find(item => item.id === id);
-  if (!template) return;
+  const t = templates.find(item => item.id === id);
+  if (!t) return;
 
-  currentTemplateId = id;
+  currentId = id;
 
   $("modalKicker").textContent = "TEMPLATE PREVIEW";
-  $("modalTitle").textContent = template.title;
+  $("modalTitle").textContent = t.title;
 
-  $("previewTo").textContent = template.to.filter(Boolean).join(", ") || "—";
-  $("previewCc").textContent = template.cc.filter(Boolean).join(", ") || "—";
-  $("previewBcc").textContent = template.bcc.filter(Boolean).join(", ") || "—";
-  $("previewSubject").textContent = replaceDate(template.subject);
-  $("previewBody").textContent = replaceDate(template.body);
+  $("previewTo").textContent = t.to.filter(Boolean).join(", ") || "—";
+  $("previewCc").textContent = t.cc.filter(Boolean).join(", ") || "—";
+  $("previewBcc").textContent = t.bcc.filter(Boolean).join(", ") || "—";
+  $("previewSubject").textContent = dated(t.subject);
+  $("previewBody").textContent = dated(t.body);
 
   $("editFields").hidden = true;
   $("previewFields").hidden = false;
 
-  openModal();
+  showModal();
 }
-
-function renderRecipientFields(type, values) {
-  const container = $(`${type}Recipients`);
-  container.innerHTML = "";
-
-  const list = values.length ? values : [""];
-
-  list.forEach(value => {
-    addRecipientRow(type, value);
-  });
-}
-
-function addRecipientRow(type, value = "") {
-  const container = $(`${type}Recipients`);
-
-  const row = document.createElement("div");
-  row.className = "recipient-row";
-
-  const input = document.createElement("input");
-  input.type = "email";
-  input.placeholder = "Enter email address";
-  input.value = value;
-  input.className = `${type}-email`;
-
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "remove-recipient";
-  remove.textContent = "×";
-  remove.setAttribute("aria-label", "Remove email");
-
-  remove.addEventListener("click", () => {
-    if (container.children.length > 1) {
-      row.remove();
-    } else {
-      input.value = "";
-    }
-  });
-
-  row.append(input, remove);
-  container.appendChild(row);
-}
-
-document.querySelectorAll("[data-add-recipient]").forEach(button => {
-  button.addEventListener("click", () => {
-    addRecipientRow(button.dataset.addRecipient);
-  });
-});
-
-function getRecipients(type) {
-  return [...$(`${type}Recipients`).querySelectorAll("input")]
-    .map(input => input.value.trim())
-    .filter(Boolean);
-}
-
-/* =========================================
-   SAVE TEMPLATE
-========================================= */
 
 $("saveEdit").addEventListener("click", () => {
+  const t = templates.find(item => item.id === currentId);
+  if (!t) return;
+
   const title = $("editTitle").value.trim();
-  const subject = $("editSubject").value.trim();
 
   if (!title) {
-    showToast("Please enter template title");
+    notify("Enter a template title");
     return;
   }
 
   const recipients = {
-    to: getRecipients("to"),
-    cc: getRecipients("cc"),
-    bcc: getRecipients("bcc")
+    to: readRecipients("to"),
+    cc: readRecipients("cc"),
+    bcc: readRecipients("bcc")
   };
 
   for (const type of ["to", "cc", "bcc"]) {
     for (const email of recipients[type]) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showToast(`Please check the ${type.toUpperCase()} email address`);
+        notify("Check the " + type.toUpperCase() + " email address");
         return;
       }
     }
   }
 
-  const index = templates.findIndex(
-    template => template.id === currentTemplateId
-  );
+  t.title = title;
+  t.subject = $("editSubject").value;
+  t.body = $("editBody").value;
+  t.to = recipients.to;
+  t.cc = recipients.cc;
+  t.bcc = recipients.bcc;
 
-  if (index === -1) return;
-
-  templates[index] = {
-    ...templates[index],
-    title,
-    subject,
-    body: $("editBody").value,
-    ...recipients
-  };
-
-  saveData(STORAGE.templates, templates);
-
+  save(KEYS.templates, templates);
   closeModal();
   renderTemplates();
-  showToast("Template saved successfully");
+  notify("Template saved");
 });
 
-/* =========================================
-   PREVIEW ACTIONS
-========================================= */
+$("previewEdit").addEventListener("click", () => openEditor(currentId));
+$("closeModal").addEventListener("click", closeModal);
+$("cancelEdit").addEventListener("click", closeModal);
 
-$("previewEdit").addEventListener("click", () => {
-  openEditor(currentTemplateId);
+$("modalBackdrop").addEventListener("click", event => {
+  if (event.target === $("modalBackdrop")) closeModal();
 });
 
-function composeGmail(template) {
-  const to = template.to.filter(Boolean).join(",");
-  const cc = template.cc.filter(Boolean).join(",");
-  const bcc = template.bcc.filter(Boolean).join(",");
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !$("modalBackdrop").hidden) closeModal();
+});
 
+/* =====================================
+   GMAIL COMPOSE
+===================================== */
+
+function composeGmail(t) {
   const params = new URLSearchParams();
+
+  const to = (t.to || []).filter(Boolean).join(",");
+  const cc = (t.cc || []).filter(Boolean).join(",");
+  const bcc = (t.bcc || []).filter(Boolean).join(",");
 
   if (to) params.set("to", to);
   if (cc) params.set("cc", cc);
   if (bcc) params.set("bcc", bcc);
 
-  params.set("su", replaceDate(template.subject));
-  params.set("body", replaceDate(template.body));
+  params.set("su", dated(t.subject));
+  params.set("body", dated(t.body));
 
   const url = "https://mail.google.com/mail/?view=cm&fs=1&" +
     params.toString();
 
-  window.open(url, "_blank");
+  const win = window.open(url, "_blank");
 
-  const draft = {
-    ...template,
-    savedAt: new Date().toISOString(),
-    subject: replaceDate(template.subject),
-    body: replaceDate(template.body)
-  };
+  if (!win) {
+    notify("Allow pop-ups to open Gmail");
+    return;
+  }
 
-  drafts.unshift(draft);
-  saveData(STORAGE.drafts, drafts);
+  drafts.unshift({
+    ...t,
+    to: [...(t.to || [])],
+    cc: [...(t.cc || [])],
+    bcc: [...(t.bcc || [])],
+    subject: dated(t.subject),
+    body: dated(t.body),
+    savedAt: new Date().toISOString()
+  });
 
-  showToast("Gmail compose opened");
+  save(KEYS.drafts, drafts);
+  notify("Gmail compose opened");
 }
 
 $("previewCompose").addEventListener("click", () => {
-  const template = templates.find(
-    item => item.id === currentTemplateId
-  );
-
-  if (!template) return;
-
-  composeGmail(template);
+  const t = templates.find(item => item.id === currentId);
+  if (t) composeGmail(t);
 });
 
-$("closeModal").addEventListener("click", closeModal);
-$("cancelEdit").addEventListener("click", closeModal);
-
-$("modalBackdrop").addEventListener("click", event => {
-  if (event.target === $("modalBackdrop")) {
-    closeModal();
-  }
-});
-
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !$("modalBackdrop").hidden) {
-    closeModal();
-  }
-});
-
-/* =========================================
+/* =====================================
    DRAFTS
-========================================= */
+===================================== */
 
 function renderDrafts() {
   const grid = $("templateGrid");
   grid.innerHTML = "";
 
-  $("emptyState").hidden = drafts.length !== 0;
+  $("emptyState").hidden = drafts.length > 0;
 
   drafts.forEach((draft, index) => {
     const card = document.createElement("article");
     card.className = "template-card";
-
-    const number = document.createElement("div");
-    number.className = "card-number";
-    number.textContent = `SAVED DRAFT ${index + 1}`;
 
     const title = document.createElement("h3");
     title.textContent = draft.title;
 
     const subject = document.createElement("p");
     subject.className = "card-subject";
-    subject.textContent = draft.subject || "";
+    subject.textContent = draft.subject;
 
-    const description = document.createElement("p");
-    description.className = "card-description";
-    description.textContent = draft.body.substring(0, 105) + "...";
+    const body = document.createElement("p");
+    body.className = "card-description";
+    body.textContent = (draft.body || "").slice(0, 110);
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
@@ -620,76 +539,70 @@ function renderDrafts() {
     const compose = document.createElement("button");
     compose.className = "primary-button";
     compose.textContent = "Open in Gmail";
-    compose.addEventListener("click", () => composeGmail(draft));
+    compose.onclick = () => composeGmail(draft);
 
     const remove = document.createElement("button");
     remove.className = "secondary-button";
     remove.textContent = "Delete";
-    remove.addEventListener("click", () => {
-      if (!confirm("Delete this saved draft?")) return;
 
+    remove.onclick = () => {
+      if (!confirm("Delete this saved draft?")) return;
       drafts.splice(index, 1);
-      saveData(STORAGE.drafts, drafts);
+      save(KEYS.drafts, drafts);
       renderDrafts();
-      showToast("Draft deleted");
-    });
+      notify("Draft deleted");
+    };
 
     actions.append(compose, remove);
-    card.append(number, title, subject, description, actions);
+    card.append(title, subject, body, actions);
     grid.appendChild(card);
   });
 }
 
-/* =========================================
-   WORKSPACE 2 - 22 SHEET NAMES
-========================================= */
+/* =====================================
+   WORKSPACE 2 - 22 SHEETS
+===================================== */
 
-const DEFAULT_SHEETS = [
-  "Uki",
-  "Latam",
-  "Operations",
-  "Reports",
-  "Daily Updates",
-  "Team Details",
-  "Attendance",
-  "Work Status",
-  "Project Data",
-  "Sales Report",
-  "Monthly Report",
-  "Weekly Report",
-  "Task Details",
-  "Employee Data",
-  "Client Details",
-  "Finance Report",
-  "Performance",
-  "Audit Report",
-  "Data Sheet",
-  "Final Report",
-  "Summary",
-  "Backup Data"
-];
+const defaultSheets = Array.from({ length: 22 }, (_, i) => ({
+  id: i + 1,
+  name: "Sheet " + String(i + 1).padStart(2, "0"),
+  checked: false
+}));
 
-let sheets = loadData(STORAGE.sheets, null);
+let sheets = read(KEYS.sheets, defaultSheets);
 
-if (!Array.isArray(sheets)) {
-  sheets = DEFAULT_SHEETS.map((name, index) => ({
-    id: index + 1,
-    name,
-    checked: false
+if (!Array.isArray(sheets)) sheets = defaultSheets;
+
+sheets = sheets.filter(s => s && typeof s === "object")
+  .map((s, i) => ({
+    id: s.id ?? i + 1,
+    name: String(s.name || "Sheet " + String(i + 1).padStart(2, "0")),
+    checked: Boolean(s.checked)
   }));
-  saveData(STORAGE.sheets, sheets);
-}
 
 let nextSheetId = Math.max(0, ...sheets.map(s => Number(s.id) || 0)) + 1;
 
 function saveSheets() {
-  saveData(STORAGE.sheets, sheets);
+  save(KEYS.sheets, sheets);
 }
 
-function updateSheetCount() {
-  const count = sheets.length;
-  $("sheetCount").textContent =
-    `${count} sheet ${count === 1 ? "name" : "names"}`;
+async function copySheetName(name) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(name);
+    return;
+  }
+
+  const input = document.createElement("textarea");
+  input.value = name;
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  document.body.appendChild(input);
+  input.select();
+
+  const success = document.execCommand("copy");
+  input.remove();
+
+  if (!success) throw new Error("Copy failed");
 }
 
 function renderSheets() {
@@ -703,8 +616,7 @@ function renderSheets() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.className = "sheet-checkbox";
-    checkbox.checked = Boolean(sheet.checked);
-    checkbox.setAttribute("aria-label", `Select ${sheet.name}`);
+    checkbox.checked = sheet.checked;
 
     checkbox.addEventListener("change", () => {
       sheet.checked = checkbox.checked;
@@ -720,230 +632,104 @@ function renderSheets() {
 
     const date = document.createElement("span");
     date.className = "sheet-date";
-    date.textContent = getW2Date();
+    date.textContent = sheetDate();
 
     info.append(name, date);
 
     const actions = document.createElement("div");
     actions.className = "sheet-actions";
 
-    /* COPY BUTTON */
-    const copyButton = document.createElement("button");
-    copyButton.type = "button";
-    copyButton.className = "sheet-action copy";
-    copyButton.textContent = "Copy";
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "sheet-action copy";
+    copy.textContent = "Copy";
 
-    copyButton.addEventListener("click", async () => {
-      const sheetName = sheet.name;
-
+    copy.addEventListener("click", async () => {
       try {
-        await copyText(sheetName);
-        showToast(`Copied: ${sheetName}`);
-      } catch (error) {
-        showToast("Copy failed. Please select and copy manually.");
+        await copySheetName(sheet.name);
+        notify("Sheet name copied: " + sheet.name);
+      } catch {
+        notify("Copy failed. Please try again.");
       }
     });
 
-    /* EDIT BUTTON */
-    const editButton = document.createElement("button");
-    editButton.type = "button";
-    editButton.className = "sheet-action";
-    editButton.textContent = "Edit";
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "sheet-action";
+    edit.textContent = "Edit";
 
-    editButton.addEventListener("click", () => {
-      const updatedName = prompt("Enter new sheet name:", sheet.name);
+    edit.addEventListener("click", () => {
+      const result = prompt("Edit sheet name:", sheet.name);
+      if (result === null) return;
 
-      if (updatedName === null) return;
-
-      const cleanName = updatedName.trim();
-
-      if (!cleanName) {
-        showToast("Sheet name cannot be empty");
+      if (!result.trim()) {
+        notify("Sheet name cannot be empty");
         return;
       }
 
-      sheet.name = cleanName;
+      sheet.name = result.trim();
       saveSheets();
       renderSheets();
-      showToast("Sheet name updated");
+      notify("Sheet name updated");
     });
 
-    /* DELETE BUTTON */
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "sheet-action delete";
-    deleteButton.textContent = "Delete";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "sheet-action delete";
+    remove.textContent = "Delete";
 
-    deleteButton.addEventListener("click", () => {
-      if (!confirm(`Delete "${sheet.name}"?`)) return;
+    remove.addEventListener("click", () => {
+      if (!confirm("Delete " + sheet.name + "?")) return;
 
-      sheets = sheets.filter(item => item.id !== sheet.id);
-
+      sheets = sheets.filter(s => s.id !== sheet.id);
       saveSheets();
       renderSheets();
-      showToast("Sheet deleted");
+      notify("Sheet deleted");
     });
 
-    actions.append(copyButton, editButton, deleteButton);
-
+    actions.append(copy, edit, remove);
     row.append(checkbox, info, actions);
     container.appendChild(row);
   });
 
-  updateSheetCount();
+  $("sheetCount").textContent =
+    sheets.length + (sheets.length === 1 ? " sheet name" : " sheet names");
 }
 
-/* =========================================
-   COPY FUNCTION
-========================================= */
-
-async function copyText(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.style.position = "fixed";
-  textarea.style.left = "-9999px";
-  textarea.style.top = "0";
-
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
-
-  const success = document.execCommand("copy");
-  textarea.remove();
-
-  if (!success) {
-    throw new Error("Clipboard copy failed");
-  }
-}
-
-/* =========================================
-   ADD SHEET NAME
-========================================= */
+/* ADD SHEET */
 
 $("addSheetButton").addEventListener("click", () => {
-  const name = prompt("Enter new sheet name:");
+  const result = prompt("Enter new sheet name:");
 
-  if (name === null) return;
+  if (result === null) return;
 
-  const cleanName = name.trim();
-
-  if (!cleanName) {
-    showToast("Please enter a sheet name");
+  if (!result.trim()) {
+    notify("Enter a sheet name");
     return;
   }
 
   sheets.push({
     id: nextSheetId++,
-    name: cleanName,
+    name: result.trim(),
     checked: false
   });
 
   saveSheets();
   renderSheets();
-
-  showToast("New sheet added");
+  notify("New sheet added");
 });
 
-/* =========================================
-   CLEAR ALL SHEETS
-========================================= */
+/* CLEAR ALL */
 
 $("clearAllSheets").addEventListener("click", () => {
   if (!sheets.length) {
-    showToast("No sheets to clear");
+    notify("No sheet names available");
     return;
   }
 
-  if (!confirm("Are you sure you want to delete all sheet names?")) {
-    return;
-  }
+  if (!confirm("Are you sure you want to delete all sheet names?")) return;
 
   sheets = [];
   saveSheets();
   renderSheets();
-
-  showToast("All sheet names cleared");
-});
-
-/* =========================================
-   NAVIGATION
-========================================= */
-
-function switchView(view) {
-  currentView = view;
-
-  $("libraryPanel").hidden = view !== "templates";
-  $("workspace2Panel").hidden = view !== "workspace2";
-  $("draftsHeading").hidden = view !== "drafts";
-
-  $("templateGrid").hidden = view === "workspace2";
-  $("emptyState").hidden = true;
-
-  $("mailDateRow").hidden = view !== "templates";
-  $("mailDateNote").hidden = view !== "templates";
-
-  const titles = {
-    templates: "Ready when you are.",
-    drafts: "Your saved drafts.",
-    workspace2: "Your sheets, organised."
-  };
-
-  $("pageTitle").textContent = titles[view];
-
-  document.querySelectorAll(".nav-item").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.view === view
-    );
-  });
-
-  if (view === "templates") {
-    renderTemplates();
-  }
-
-  if (view === "drafts") {
-    renderDrafts();
-  }
-
-  if (view === "workspace2") {
-    updateW2DateUI();
-    renderSheets();
-  }
-
-  $("sidebar").classList.remove("open");
-}
-
-document.querySelectorAll(".nav-item").forEach(button => {
-  button.addEventListener("click", () => {
-    switchView(button.dataset.view);
-  });
-});
-
-$("backTemplates").addEventListener("click", () => {
-  switchView("templates");
-});
-
-$("menuButton").addEventListener("click", () => {
-  $("sidebar").classList.toggle("open");
-});
-
-/* =========================================
-   INITIAL LOAD
-========================================= */
-
-function initializeApp() {
-  updateMailDateUI();
-  updateW2DateUI();
-
-  renderTemplates();
-  renderSheets();
-
-  switchView("templates");
-}
-
-initializeApp();
+  notify("All sheets cleared
