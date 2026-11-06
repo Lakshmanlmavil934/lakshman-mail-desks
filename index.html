@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,28 +19,22 @@
 <header class="brandbar">
 <div class="brand">
 <div class="brandmark">L</div>
-<div>
-Lakshman
+<div>Lakshman
 <small>PERSONAL WORKSPACE</small>
 </div>
 </div>
 
 <nav class="nav">
-<button type="button" id="mailTab" class="active"
-onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
-
-<button type="button" id="backupTab"
-onclick="showWorkspace('backup')">▤ Sheet Backup</button>
+<button type="button" id="mailTab" class="active" onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
+<button type="button" id="backupTab" onclick="showWorkspace('backup')">▤ Sheet Backup</button>
 </nav>
 </header>
 
 <main>
 
-<!-- MAIL WORKSPACE -->
 <section id="mailWorkspace">
 
 <div class="eyebrow">Personal communication workspace</div>
-
 <h1>Ready when you are.</h1>
 
 <p class="sub">
@@ -51,23 +44,15 @@ Your drafts and edits stay in this browser.
 
 <div class="toolbar">
 <strong>Date for drafts</strong>
-
 <div class="datepick">
-<button type="button" class="pill active"
-id="mailToday" onclick="setMailDate('today')">Today</button>
-
-<button type="button" class="pill"
-id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
-
-<input class="pill" type="date" id="mailCustom"
-onchange="setMailDate('custom')">
+<button type="button" class="pill active" id="mailToday" onclick="setMailDate('today')">Today</button>
+<button type="button" class="pill" id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
+<input class="pill" type="date" id="mailCustom" onchange="setMailDate('custom')">
 </div>
 </div>
 
 <div class="panel">
-
 <div class="eyebrow">Your library</div>
-
 <div class="panelhead">
 <div>
 <h2>Ten messages, already thought through.</h2>
@@ -83,15 +68,12 @@ oninput="renderMails()">
 <span id="templateCount">10 of 10 templates ready</span>
 <span>◷ Local changes save instantly</span>
 </div>
-
 </div>
 
 <div class="cards" id="mailCards"></div>
-
 </section>
 
 
-<!-- BACKUP WORKSPACE -->
 <section id="backupWorkspace" class="hidden">
 
 <div class="eyebrow">Daily backup list</div>
@@ -104,125 +86,73 @@ then mark its status here. Checkmarks are saved for the selected date.
 </p>
 
 <div class="toolbar">
-
 <div>
 ▦ <strong>Date on sheet names</strong>
 <div class="datehint" id="backupDateLabel"></div>
 </div>
 
 <div class="datepick">
-
-<button type="button" class="pill active"
-id="backupToday" onclick="setBackupDate('today')">Today</button>
-
-<button type="button" class="pill"
-id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
-
-<input class="pill" type="date" id="backupCustom"
-onchange="setBackupDate('custom')">
-
+<button type="button" class="pill active" id="backupToday" onclick="setBackupDate('today')">Today</button>
+<button type="button" class="pill" id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
+<input class="pill" type="date" id="backupCustom" onchange="setBackupDate('custom')">
 </div>
 </div>
 
 <div class="backup-intro">
-
 <div>
-<h2>Your 20 sheets
-<span class="count" id="doneCount">0 / 20 done</span>
-</h2>
-
+<h2>Your 20 sheets <span class="count" id="doneCount">0 / 20 done</span></h2>
 <p class="sub">Copy the dated sheet name and tick the box after backup.</p>
 </div>
-
-<button type="button" class="btn" onclick="clearChecks()">
-× Uncheck all
-</button>
-
+<button type="button" class="btn" onclick="clearChecks()">× Uncheck all</button>
 </div>
 
 <div class="sheetlist">
-
 <div class="sheethead">
 <span>SHEET NAME WITH DATE</span>
 <span>COPY NAME</span>
 <span>STATUS</span>
 </div>
-
 <div id="sheetRows"></div>
-
 </div>
 
 </section>
 
 </main>
 
-<footer>
-LAKSHMAN WORKSPACE · Built for your daily workflow
-</footer>
-
+<footer>LAKSHMAN WORKSPACE · Built for your daily workflow</footer>
 </div>
 
 
-<!-- EMAIL PREVIEW MODAL -->
-<div class="modalback hidden" id="modalBack"
-onclick="if(event.target===this)closeModal()">
+<div class="modalback hidden" id="modalBack" onclick="if(event.target===this)closeModal()">
 
 <div class="modal">
-
 <h2 id="modalTitle">Message preview</h2>
 
-<!-- MULTIPLE EMAIL RECIPIENTS -->
-<label for="editTo">To (Multiple emails)</label>
+<label for="editTo">To (multiple email addresses separated by commas)</label>
+<input id="editTo" type="text"
+placeholder="name1@example.com, name2@example.com">
 
-<input
-type="text"
-id="editTo"
-placeholder="example1@gmail.com, example2@gmail.com, example3@gmail.com"
->
+<label for="editCc">Cc (multiple email addresses separated by commas)</label>
+<input id="editCc" type="text"
+placeholder="cc1@example.com, cc2@example.com">
 
-<label for="editCc">Cc (Multiple emails)</label>
-
-<input
-type="text"
-id="editCc"
-placeholder="manager@gmail.com, team@gmail.com"
->
-
-<!-- SUBJECT -->
 <label for="editSubject">Subject</label>
+<input id="editSubject">
 
-<input
-type="text"
-id="editSubject"
->
-
-<!-- MESSAGE -->
 <label for="editBody">Message</label>
-
 <textarea id="editBody"></textarea>
 
-<!-- MODAL BUTTONS -->
 <div class="modalactions">
-
-<button type="button" class="btn"
-onclick="closeModal()">Cancel</button>
-
-<button type="button" class="btn"
-onclick="copyEmail()">Copy message</button>
-
-<button type="button" class="btn primary"
-onclick="openEmail()">Open email app</button>
-
+<button type="button" class="btn" onclick="closeModal()">Cancel</button>
+<button type="button" class="btn" onclick="copyEmail()">Copy message</button>
+<button type="button" class="btn primary" onclick="openEmail()">Open email app</button>
 </div>
 
 </div>
 </div>
 
-<!-- NOTIFICATION -->
 <div class="toast" id="toast"></div>
 
-<!-- EXISTING JAVASCRIPT -->
 <script src="script.js"></script>
-
 </body>
 </html>
