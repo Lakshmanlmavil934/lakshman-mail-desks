@@ -1,89 +1,352 @@
 
 "use strict";
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-const STORAGE_TEMPLATES = "lakshman_workspace_templates_v3";
-const STORAGE_BACKUP = "lakshman_workspace_backup_v3";
+const TEMPLATE_KEY = "lakshman_mail_templates_v5";
+const DRAFT_KEY = "lakshman_mail_drafts_v1";
+const BACKUP_KEY = "lakshman_backup_status_v5";
+const SHEET_KEY = "lakshman_sheet_names_v5";
 
-let templates = loadTemplates();
-let backupStatus = loadBackupStatus();
-let selectedBackupDate = dateKey(new Date());
-
-const sheetNames = [
-  "Sheet 01", "Sheet 02", "Sheet 03", "Sheet 04",
-  "Sheet 05", "Sheet 06", "Sheet 07", "Sheet 08",
-  "Sheet 09", "Sheet 10", "Sheet 11", "Sheet 12",
-  "Sheet 13", "Sheet 14", "Sheet 15", "Sheet 16",
-  "Sheet 17", "Sheet 18", "Sheet 19", "Sheet 20"
-];
-
-function loadTemplates() {
+function load(key, fallback) {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_TEMPLATES));
-    return Array.isArray(saved) ? saved : [];
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-function loadBackupStatus() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_BACKUP));
-    return saved && typeof saved === "object" ? saved : {};
-  } catch {
-    return {};
-  }
+function save(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
-function saveTemplates() {
-  localStorage.setItem(STORAGE_TEMPLATES, JSON.stringify(templates));
-}
-
-function saveBackupStatus() {
-  localStorage.setItem(STORAGE_BACKUP, JSON.stringify(backupStatus));
+function uid() {
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
 }
 
 function dateKey(date) {
-  const year = date.getFullYear();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/* DISPLAY DATE AS MM/DD/YYYY */
+function formatDate(value) {
+  if (!value) return "";
+  const date = typeof value === "string"
+    ? new Date(value + "T00:00:00")
+    : value;
+
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const year = date.getFullYear();
+
+  return `${month}/${day}/${year}`;
+}
+
+function dateForChoice(type) {
+  const date = new Date();
+  if (type === "tomorrow") date.setDate(date.getDate() + 1);
+  return dateKey(date);
 }
 
 function showToast(message) {
   const toast = $("toast");
   toast.textContent = message;
   toast.classList.add("show");
-
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => {
     toast.classList.remove("show");
-  }, 2600);
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
+  }, 2400);
 }
 
 function parseEmails(value) {
   return String(value || "")
     .split(/[,;\n]+/)
-    .map(email => email.trim())
+    .map(v => v.trim())
     .filter(Boolean);
 }
 
-function collectEmailRows(containerId) {
-  return [...$(containerId).querySelectorAll("input")]
-    .map(input => input.value.trim())
-    .filter(Boolean);
+function button(text, className, action) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = text;
+  b.className = className;
+  b.addEventListener("click", action);
+  return b;
 }
+
+/* DEFAULT EMAIL TEMPLATES */
+
+const defaultTemplates = [
+  {
+    title: "Project status — weekly",
+    subject: "Project status — weekly — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Mira,\n\nHere is the latest project status as of {DATE}.\n\nHighlights:\n• Product review is on track\n• Development updates are completed\n• Pending items are being followed up\n\nPlease let me know if you need any additional details.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Design review follow-up",
+    subject: "Design review follow-up — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Team,\n\nThank you for the thoughtful review. I have folded the agreed changes into the latest version.\n\nPlease review and share any further feedback.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Invoice reminder",
+    subject: "Invoice follow-up — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi,\n\nThis is a quick follow-up on the pending invoice. Could you please confirm its expected processing date?\n\nThank you.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Meeting confirmation",
+    subject: "Meeting confirmation — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Nina,\n\nConfirming our conversation for {DATE}. I have set aside the full hour and will be ready to discuss the agenda.\n\nLooking forward to speaking with you.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Partner introduction",
+    subject: "Partner introduction — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Samir,\n\nSharing this introduction with you. I wanted to connect you with our partner team to explore the next steps.\n\nPlease let me know if I can help coordinate.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Request for materials",
+    subject: "Request for materials — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Devon,\n\nBefore we meet on {DATE}, could you send over the latest research notes and supporting materials?\n\nThank you for your help.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Decision log update",
+    subject: "Decision log update — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Team,\n\nHere is the decision log update for {DATE}.\n\nDecisions:\n• The current plan is approved\n• Owners have been assigned\n• Next steps will be tracked\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Thank-you note",
+    subject: "Thank-you for the conversation — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi,\n\nThank you for your time and support. I appreciate the discussion and the helpful suggestions.\n\nLooking forward to staying in touch.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Daily report",
+    subject: "Daily report — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Team,\n\nPlease find below the daily summary report for {DATE}.\n\nDaily AM report:\n\nNote: There is no bulk available today.\n\nRegards,\nLakshman Mavilla"
+  },
+  {
+    title: "Task completion update",
+    subject: "Task completion update — {DATE}",
+    to: "",
+    cc: "",
+    body: "Hi Team,\n\nI would like to confirm that the assigned tasks have been completed as of {DATE}.\n\nPlease let me know if anything else is required.\n\nRegards,\nLakshman Mavilla"
+  }
+];
+
+let templates = load(TEMPLATE_KEY, null);
+
+if (!Array.isArray(templates)) {
+  templates = defaultTemplates.map(item => ({
+    ...item,
+    id: uid()
+  }));
+  save(TEMPLATE_KEY, templates);
+}
+
+let drafts = load(DRAFT_KEY, []);
+
+let sheetNames = load(SHEET_KEY, [
+  "Weekly Planning",
+  "Content Calendar",
+  "Project Brief",
+  "Budget Tracker",
+  "Meeting Notes",
+  "Client Intake",
+  "Launch Checklist",
+  "Resource Library",
+  "Team Roster",
+  "Quarterly Review",
+  "Sheet 11",
+  "Sheet 12",
+  "Sheet 13",
+  "Sheet 14",
+  "Sheet 15",
+  "Sheet 16",
+  "Sheet 17",
+  "Sheet 18",
+  "Sheet 19",
+  "Sheet 20"
+]);
+
+let backupStatus = load(BACKUP_KEY, {});
+let mailDate = dateKey(new Date());
+let backupDate = dateKey(new Date());
+let previewTemplateId = null;
+
+/* NAVIGATION */
+
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+
+  document.querySelectorAll(".side-link").forEach(link => {
+    link.classList.toggle("active", link.dataset.page === pageId);
+  });
+
+  $("mobileMenuBtn").closest(".mobile-header")
+    .querySelector("strong").textContent =
+      pageId === "backupPage"
+        ? "Lakshman Backup List"
+        : "Lakshman Workspace";
+
+  $("sidebar").classList.remove("open");
+}
+
+document.querySelectorAll(".side-link").forEach(link => {
+  link.addEventListener("click", () => showPage(link.dataset.page));
+});
+
+$("backToMail").addEventListener("click", () => showPage("mailPage"));
+
+$("mobileMenuBtn").addEventListener("click", () => {
+  document.querySelector(".sidebar").classList.toggle("open");
+});
+
+/* MAIL DATE */
+
+function updateMailDate() {
+  const today = dateKey(new Date());
+  const tomorrow = dateForChoice("tomorrow");
+
+  $("todayDate").textContent = formatDate(today);
+  $("tomorrowDate").textContent = formatDate(tomorrow);
+  $("mailSelectedDate").textContent = formatDate(mailDate);
+  $("mailCustomDate").value = mailDate;
+
+  document.querySelectorAll("[data-date]").forEach(b => {
+    b.classList.toggle(
+      "active",
+      b.dataset.date === (
+        mailDate === today ? "today" :
+        mailDate === tomorrow ? "tomorrow" : "custom"
+      )
+    );
+  });
+}
+
+document.querySelectorAll("[data-date]").forEach(b => {
+  b.addEventListener("click", () => {
+    mailDate = dateForChoice(b.dataset.date);
+    updateMailDate();
+    renderTemplates();
+  });
+});
+
+$("mailCustomDate").addEventListener("change", e => {
+  if (!e.target.value) return;
+  mailDate = e.target.value;
+  updateMailDate();
+  renderTemplates();
+});
+
+/* TEMPLATE RENDERING */
+
+function fillDate(text) {
+  return String(text || "").replaceAll("{DATE}", formatDate(mailDate));
+}
+
+function renderTemplates() {
+  const grid = $("templateGrid");
+  const search = $("templateSearch").value.toLowerCase().trim();
+
+  grid.innerHTML = "";
+
+  const filtered = templates.filter(t => {
+    const combined = [
+      t.title, t.subject, t.to, t.cc, t.body
+    ].join(" ").toLowerCase();
+
+    return combined.includes(search);
+  });
+
+  filtered.forEach((template, index) => {
+    const card = document.createElement("article");
+    card.className = "template-card";
+
+    const top = document.createElement("div");
+    top.className = "card-topline";
+
+    const number = document.createElement("div");
+    number.innerHTML =
+      `<span class="card-number">${String(index + 1).padStart(2, "0")}</span>` +
+      `<span class="card-ready">READY</span>`;
+
+    const edit = button("✎", "edit-icon", () => {
+      openTemplateForm(template.id);
+    });
+
+    top.append(number, edit);
+
+    const title = document.createElement("h3");
+    title.textContent = fillDate(template.title);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "card-subtitle";
+    subtitle.textContent = fillDate(template.subject);
+
+    const excerpt = document.createElement("div");
+    excerpt.className = "card-excerpt";
+    excerpt.textContent = fillDate(template.body);
+
+    const meta = document.createElement("div");
+    meta.className = "card-meta";
+
+    const recipients = document.createElement("span");
+    recipients.textContent =
+      (parseEmails(template.to)[0] || "No recipient") +
+      " · " + (parseEmails(template.cc).length
+        ? parseEmails(template.cc).length + " cc"
+        : "No cc");
+
+    const dateTag = document.createElement("span");
+    dateTag.textContent = "Date-aware";
+
+    meta.append(recipients, dateTag);
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    actions.append(
+      button("Preview ↗", "preview-btn", () => openPreview(template.id)),
+      button("➤ Compose", "compose-btn", () => openGmailComposer(template.id))
+    );
+
+    card.append(top, title, subtitle, excerpt, meta, actions);
+
+    grid.appendChild(card);
+  });
+
+  $("emptyTemplates").hidden = filtered.length > 0;
+  $("readyCount").textContent =
+    `${templates.length} of ${templates.length}`;
+  $("templateSideCount").textContent = templates.length;
+}
+
+$("templateSearch").addEventListener("input", renderTemplates);
+
+/* TEMPLATE EDITOR */
 
 function addEmailRow(containerId, value = "") {
   const container = $(containerId);
@@ -94,15 +357,9 @@ function addEmailRow(containerId, value = "") {
   input.type = "email";
   input.placeholder = "name@example.com";
   input.value = value;
-  input.multiple = false;
 
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.textContent = "×";
-  remove.title = "Remove email";
-
-  remove.addEventListener("click", () => {
-    if (container.querySelectorAll(".email-row").length > 1) {
+  const remove = button("×", "", () => {
+    if (container.children.length > 1) {
       row.remove();
     } else {
       input.value = "";
@@ -113,12 +370,41 @@ function addEmailRow(containerId, value = "") {
   container.appendChild(row);
 }
 
-function setEmailRows(containerId, emails) {
+function setEmailRows(containerId, values) {
   const container = $(containerId);
   container.innerHTML = "";
+  (values.length ? values : [""]).forEach(v => addEmailRow(containerId, v));
+}
 
-  const values = emails.length ? emails : [""];
-  values.forEach(email => addEmailRow(containerId, email));
+function getEmailRows(containerId) {
+  return [...$(containerId).querySelectorAll("input")]
+    .map(i => i.value.trim())
+    .filter(Boolean);
+}
+
+function openTemplateForm(id = "") {
+  $("templateForm").reset();
+  $("templateId").value = "";
+
+  if (id) {
+    const t = templates.find(item => item.id === id);
+    if (!t) return;
+
+    $("modalTitle").textContent = "Edit template";
+    $("templateId").value = t.id;
+    $("formTitle").value = t.title;
+    $("formSubject").value = t.subject;
+    $("formBody").value = t.body;
+
+    setEmailRows("formToRows", parseEmails(t.to));
+    setEmailRows("formCcRows", parseEmails(t.cc));
+  } else {
+    $("modalTitle").textContent = "Add template";
+    setEmailRows("formToRows", [""]);
+    setEmailRows("formCcRows", [""]);
+  }
+
+  openModal("templateModal");
 }
 
 function openModal(id) {
@@ -129,467 +415,312 @@ function closeModal(id) {
   $(id).classList.remove("show");
 }
 
-function updateStats() {
-  $("templateCount").textContent = templates.length;
-  $("templateReady").textContent = templates.filter(t =>
-    t.title && t.subject && t.body
-  ).length;
-}
+$("addTemplateBtn").addEventListener("click", () => openTemplateForm());
+$("addToBtn").addEventListener("click", () => addEmailRow("formToRows"));
+$("addCcBtn").addEventListener("click", () => addEmailRow("formCcRows"));
 
-function renderTemplates() {
-  const search = $("templateSearch").value.toLowerCase().trim();
-  const grid = $("templateGrid");
-
-  const filtered = templates.filter(template => {
-    const text = [
-      template.title,
-      template.subject,
-      template.to,
-      template.cc,
-      template.body
-    ].join(" ").toLowerCase();
-
-    return text.includes(search);
-  });
-
-  grid.innerHTML = "";
-
-  filtered.forEach(template => {
-    const card = document.createElement("article");
-    card.className = "template-card";
-
-    const title = document.createElement("h3");
-    title.textContent = template.title;
-
-    const subject = document.createElement("p");
-    subject.className = "template-subject";
-    subject.textContent = "Subject: " + template.subject;
-
-    const to = document.createElement("p");
-    to.textContent = "To: " + (template.to || "Not added");
-
-    const cc = document.createElement("p");
-    cc.textContent = "Cc: " + (template.cc || "Not added");
-
-    const actions = document.createElement("div");
-    actions.className = "card-actions";
-
-    const compose = makeButton("Compose", "compose-btn", () => {
-      openGmailComposer(template.id);
-    });
-
-    const preview = makeButton("Preview", "preview-btn", () => {
-      openPreview(template.id);
-    });
-
-    const edit = makeButton("Edit", "edit-btn", () => {
-      openTemplateForm(template.id);
-    });
-
-    const remove = makeButton("Delete", "delete-btn", () => {
-      deleteTemplate(template.id);
-    });
-
-    actions.append(compose, preview, edit, remove);
-    card.append(title, subject, to, cc, actions);
-    grid.appendChild(card);
-  });
-
-  $("emptyTemplates").hidden = filtered.length !== 0;
-  updateStats();
-}
-
-function makeButton(label, className, callback) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = className;
-  button.textContent = label;
-  button.addEventListener("click", callback);
-  return button;
-}
-
-function openTemplateForm(id = "") {
-  $("templateForm").reset();
-  $("templateId").value = "";
-
-  if (id) {
-    const template = templates.find(t => t.id === id);
-    if (!template) return;
-
-    $("modalTitle").textContent = "Edit Template";
-    $("templateId").value = template.id;
-    $("formTitle").value = template.title;
-    $("formSubject").value = template.subject;
-    $("formBody").value = template.body;
-
-    setEmailRows("formToRows", parseEmails(template.to));
-    setEmailRows("formCcRows", parseEmails(template.cc));
-  } else {
-    $("modalTitle").textContent = "Add Template";
-    setEmailRows("formToRows", [""]);
-    setEmailRows("formCcRows", [""]);
-  }
-
-  openModal("templateModal");
-}
-
-function saveTemplate(event) {
-  event.preventDefault();
+$("templateForm").addEventListener("submit", e => {
+  e.preventDefault();
 
   const id = $("templateId").value;
-  const existing = templates.find(t => t.id === id);
+  const old = templates.find(t => t.id === id);
 
-  const template = {
-    id: id || crypto.randomUUID(),
+  const item = {
+    id: id || uid(),
     title: $("formTitle").value.trim(),
     subject: $("formSubject").value.trim(),
-    to: collectEmailRows("formToRows").join(", "),
-    cc: collectEmailRows("formCcRows").join(", "),
+    to: getEmailRows("formToRows").join(", "),
+    cc: getEmailRows("formCcRows").join(", "),
     body: $("formBody").value
   };
 
-  if (!template.title || !template.subject || !template.body.trim()) {
-    showToast("Please complete the required fields.");
+  if (!item.title || !item.subject || !item.body.trim()) {
+    showToast("Complete all required fields.");
     return;
   }
 
-  if (existing) {
-    templates = templates.map(t => t.id === id ? template : t);
+  if (old) {
+    templates = templates.map(t => t.id === id ? item : t);
   } else {
-    templates.unshift(template);
+    templates.push(item);
   }
 
-  saveTemplates();
+  save(TEMPLATE_KEY, templates);
   renderTemplates();
   closeModal("templateModal");
-  showToast(existing ? "Template updated." : "Template saved.");
-}
+  showToast("Template saved.");
+});
 
-function deleteTemplate(id) {
-  if (!confirm("Delete this email template?")) return;
+/* DIRECT GMAIL COMPOSE */
 
-  templates = templates.filter(t => t.id !== id);
-  saveTemplates();
-  renderTemplates();
-  showToast("Template deleted.");
-}
-
-/*
-  IMPORTANT:
-  Compose opens Gmail Web directly in a new browser tab.
-  It does not use mailto: and does not open the phone email app.
-  The new Gmail tab is prefilled; the user must review and send.
-*/
 function openGmailComposer(id) {
-  const template = templates.find(t => t.id === id);
-
-  if (!template) {
-    showToast("Template not found.");
-    return;
-  }
+  const t = templates.find(item => item.id === id);
+  if (!t) return;
 
   const params = new URLSearchParams();
   params.set("view", "cm");
   params.set("fs", "1");
 
-  const to = parseEmails(template.to);
-  const cc = parseEmails(template.cc);
+  const to = parseEmails(t.to);
+  const cc = parseEmails(t.cc);
 
   if (to.length) params.set("to", to.join(","));
   if (cc.length) params.set("cc", cc.join(","));
 
-  params.set("su", template.subject || "");
-  params.set("body", template.body || "");
+  params.set("su", fillDate(t.subject));
+  params.set("body", fillDate(t.body));
 
-  const gmailURL =
-    "https://mail.google.com/mail/u/0/?" + params.toString();
+  const url = "https://mail.google.com/mail/u/0/?" + params.toString();
 
-  // Open synchronously during the button click to avoid popup blocking.
-  const newTab = window.open(gmailURL, "_blank");
+  // Direct Gmail tab. No preview page and no mailto link.
+  const tab = window.open(url, "_blank");
 
-  if (!newTab) {
-    showToast("Chrome blocked the new tab. Allow pop-ups for this site and try again.");
+  if (!tab) {
+    showToast("Allow pop-ups in Chrome to open Gmail.");
   }
 }
+
+/* PREVIEW */
 
 function openPreview(id) {
-  const template = templates.find(t => t.id === id);
-  if (!template) return;
+  const t = templates.find(item => item.id === id);
+  if (!t) return;
 
-  $("previewTo").textContent = template.to || "Not added";
-  $("previewCc").textContent = template.cc || "Not added";
-  $("composeSubject").textContent = template.subject;
-  $("composeBody").textContent = template.body;
+  previewTemplateId = id;
 
-  $("copyEmailBtn").onclick = () => {
-    const text =
-      `To: ${template.to}\n` +
-      `Cc: ${template.cc}\n` +
-      `Subject: ${template.subject}\n\n` +
-      template.body;
+  $("previewTo").textContent = t.to || "No recipient";
+  $("previewCc").textContent = t.cc || "No Cc";
+  $("previewSubject").textContent = fillDate(t.subject);
+  $("previewBody").textContent = fillDate(t.body);
 
-    copyText(text);
-  };
-
-  openModal("composeModal");
+  openModal("previewModal");
 }
 
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard.");
-  } catch {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    textarea.remove();
-    showToast("Copied to clipboard.");
+$("previewComposeBtn").addEventListener("click", () => {
+  if (previewTemplateId) {
+    closeModal("previewModal");
+    openGmailComposer(previewTemplateId);
   }
-}
+});
 
-function exportTemplates() {
-  const blob = new Blob(
-    [JSON.stringify(templates, null, 2)],
-    { type: "application/json" }
-  );
+/* DRAFTS */
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "lakshman-email-templates.json";
-  link.click();
-  URL.revokeObjectURL(url);
+function renderDrafts() {
+  const list = $("draftList");
+  list.innerHTML = "";
 
-  showToast("Templates exported.");
-}
-
-function importTemplates(file) {
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-
-      if (!Array.isArray(imported)) {
-        throw new Error("Invalid file");
-      }
-
-      const valid = imported
-        .filter(item => item && typeof item === "object")
-        .map(item => ({
-          id: crypto.randomUUID(),
-          title: String(item.title || "Imported Template"),
-          subject: String(item.subject || ""),
-          to: String(item.to || ""),
-          cc: String(item.cc || ""),
-          body: String(item.body || "")
-        }));
-
-      templates = [...valid, ...templates];
-      saveTemplates();
-      renderTemplates();
-      showToast(`${valid.length} templates imported.`);
-    } catch {
-      showToast("Invalid JSON file.");
-    }
-
-    $("importTemplatesInput").value = "";
-  };
-
-  reader.readAsText(file);
-}
-
-/* SHEETS BACKUP */
-
-function getDayStatus() {
-  if (!backupStatus[selectedBackupDate]) {
-    backupStatus[selectedBackupDate] = {};
+  if (!drafts.length) {
+    list.textContent = "No locally saved drafts yet.";
+    return;
   }
 
-  return backupStatus[selectedBackupDate];
+  drafts.forEach(draft => {
+    const row = document.createElement("div");
+    row.className = "draft-item";
+
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = draft.subject || "Untitled draft";
+
+    const small = document.createElement("small");
+    small.textContent = "Saved " + formatDate(draft.date);
+
+    info.append(title, small);
+
+    const actions = document.createElement("div");
+
+    actions.append(
+      button("Open Gmail ↗", "dark-btn", () => {
+        openDraftInGmail(draft);
+      }),
+      button("Delete", "light-btn", () => {
+        drafts = drafts.filter(d => d.id !== draft.id);
+        save(DRAFT_KEY, drafts);
+        renderDrafts();
+      })
+    );
+
+    row.append(info, actions);
+    list.appendChild(row);
+  });
 }
+
+function openDraftInGmail(draft) {
+  const params = new URLSearchParams();
+  params.set("view", "cm");
+  params.set("fs", "1");
+  if (draft.to) params.set("to", draft.to);
+  if (draft.cc) params.set("cc", draft.cc);
+  params.set("su", draft.subject || "");
+  params.set("body", draft.body || "");
+  window.open("https://mail.google.com/mail/u/0/?" + params.toString(), "_blank");
+}
+
+/* BACKUP DATE */
+
+function currentBackupStatus() {
+  if (!backupStatus[backupDate]) backupStatus[backupDate] = {};
+  return backupStatus[backupDate];
+}
+
+function updateBackupDateUI() {
+  $("backupDateReadable").textContent = formatDate(backupDate);
+  $("backupCustomDate").value = backupDate;
+
+  const today = dateForChoice("today");
+  const tomorrow = dateForChoice("tomorrow");
+
+  document.querySelectorAll("[data-backup-date]").forEach(b => {
+    const active =
+      (b.dataset.backupDate === "today" && backupDate === today) ||
+      (b.dataset.backupDate === "tomorrow" && backupDate === tomorrow);
+
+    b.classList.toggle("active", active);
+  });
+}
+
+document.querySelectorAll("[data-backup-date]").forEach(b => {
+  b.addEventListener("click", () => {
+    backupDate = dateForChoice(b.dataset.backupDate);
+    updateBackupDateUI();
+    renderSheets();
+  });
+});
+
+$("backupCustomDate").addEventListener("change", e => {
+  if (!e.target.value) return;
+  backupDate = e.target.value;
+  updateBackupDateUI();
+  renderSheets();
+});
+
+/* BACKUP LIST */
 
 function renderSheets() {
-  const status = getDayStatus();
   const list = $("sheetList");
+  const status = currentBackupStatus();
+
   list.innerHTML = "";
 
   sheetNames.forEach((name, index) => {
-    const done = Boolean(status[name]);
+    const row = document.createElement("div");
+    row.className = "sheet-row" + (status[name] ? " done" : "");
 
-    const item = document.createElement("div");
-    item.className = "sheet-item" + (done ? " done" : "");
+    const info = document.createElement("div");
+    info.className = "sheet-info";
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = done;
-    checkbox.setAttribute("aria-label", `Mark ${name} complete`);
+    const icon = document.createElement("div");
+    icon.className = "sheet-icon";
+    icon.textContent = "▤";
 
-    checkbox.addEventListener("change", () => {
-      status[name] = checkbox.checked;
-      saveBackupStatus();
-      renderSheets();
-    });
+    const titleBox = document.createElement("div");
+    titleBox.className = "sheet-title";
 
-    const label = document.createElement("span");
-    label.className = "sheet-name";
-    label.textContent = name;
+    const title = document.createElement("span");
+    title.textContent = `${name} - ${formatDate(backupDate)}`;
 
-    const rename = makeButton("Rename", "", () => {
-      const newName = prompt("Enter new sheet name:", name);
+    const small = document.createElement("small");
+    small.textContent = `Sheet ${String(index + 1).padStart(2, "0")}`;
 
-      if (!newName || !newName.trim()) return;
+    titleBox.append(title, small);
 
-      const cleanName = newName.trim();
+    const rename = button("✎", "rename-sheet", () => {
+      const next = prompt("Enter new sheet name:", name);
+      if (!next || !next.trim()) return;
 
-      if (sheetNames.some(n => n.toLowerCase() === cleanName.toLowerCase() && n !== name)) {
-        showToast("That sheet name already exists.");
+      const clean = next.trim();
+
+      if (sheetNames.some((n, i) =>
+        i !== index && n.toLowerCase() === clean.toLowerCase()
+      )) {
+        showToast("This sheet name already exists.");
         return;
       }
 
-      const oldStatus = Boolean(status[name]);
-      sheetNames[index] = cleanName;
+      const wasDone = Boolean(status[name]);
       delete status[name];
-      status[cleanName] = oldStatus;
+      status[clean] = wasDone;
+      sheetNames[index] = clean;
 
-      saveBackupStatus();
+      save(SHEET_KEY, sheetNames);
+      save(BACKUP_KEY, backupStatus);
       renderSheets();
     });
 
-    const copy = makeButton("Copy", "", () => {
-      copyText(name);
+    info.append(icon, titleBox, rename);
+
+    const copy = button("▢ Copy name", "copy-name", () => {
+      copyText(`${name} - ${formatDate(backupDate)}`);
     });
 
-    item.append(checkbox, label, rename, copy);
-    list.appendChild(item);
+    const statusBox = document.createElement("label");
+    statusBox.className = "sheet-status";
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = Boolean(status[name]);
+
+    check.addEventListener("change", () => {
+      status[name] = check.checked;
+      save(BACKUP_KEY, backupStatus);
+      renderSheets();
+    });
+
+    const statusText = document.createElement("span");
+    statusText.textContent = status[name] ? "Done" : "Not taken";
+
+    statusBox.append(check, statusText);
+    row.append(info, copy, statusBox);
+    list.appendChild(row);
   });
 
   const completed = sheetNames.filter(name => status[name]).length;
-  const total = sheetNames.length;
-
-  $("progressText").textContent = `${completed} / ${total}`;
-  $("progressBar").style.width = `${total ? completed / total * 100 : 0}%`;
-
-  const readableDate = new Date(selectedBackupDate + "T00:00:00");
-  $("selectedDateText").textContent = readableDate.toLocaleDateString(
-    undefined,
-    { day: "numeric", month: "short", year: "numeric" }
-  );
+  $("backupProgress").textContent = `${completed} / ${sheetNames.length} done`;
 }
 
-function selectBackupDate(type) {
-  const date = new Date();
+$("uncheckAllBtn").addEventListener("click", () => {
+  if (!confirm("Uncheck all sheets for this date?")) return;
 
-  if (type === "tomorrow") {
-    date.setDate(date.getDate() + 1);
-  }
-
-  selectedBackupDate = dateKey(date);
-  $("backupDate").value = selectedBackupDate;
-
-  document.querySelectorAll(".date-choice").forEach(button => {
-    button.classList.toggle("active", button.dataset.date === type);
-  });
-
+  backupStatus[backupDate] = {};
+  save(BACKUP_KEY, backupStatus);
   renderSheets();
+  showToast("All statuses unchecked.");
+});
+
+/* COPY */
+
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    showToast("Copied: " + value);
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = value;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    showToast("Copied successfully.");
+  }
 }
 
-/* EVENT LISTENERS */
+/* MODAL CLOSE */
 
-document.querySelectorAll(".nav-link").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".nav-link").forEach(item => {
-      item.classList.remove("active");
-    });
-
-    document.querySelectorAll(".workspace").forEach(section => {
-      section.classList.remove("active");
-    });
-
-    button.classList.add("active");
-    $(button.dataset.workspace).classList.add("active");
-  });
-});
-
-$("addTemplateBtn").addEventListener("click", () => openTemplateForm());
-$("templateForm").addEventListener("submit", saveTemplate);
-$("templateSearch").addEventListener("input", renderTemplates);
-
-$("addFormToBtn").addEventListener("click", () => {
-  addEmailRow("formToRows");
-});
-
-$("addFormCcBtn").addEventListener("click", () => {
-  addEmailRow("formCcRows");
-});
-
-$("exportTemplatesBtn").addEventListener("click", exportTemplates);
-
-$("importTemplatesBtn").addEventListener("click", () => {
-  $("importTemplatesInput").click();
-});
-
-$("importTemplatesInput").addEventListener("change", event => {
-  importTemplates(event.target.files[0]);
-});
-
-document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => closeModal(button.dataset.close));
+document.querySelectorAll("[data-close]").forEach(b => {
+  b.addEventListener("click", () => closeModal(b.dataset.close));
 });
 
 document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
-  backdrop.addEventListener("click", event => {
-    if (event.target === backdrop) {
-      backdrop.classList.remove("show");
-    }
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop) backdrop.classList.remove("show");
   });
 });
 
-document.querySelectorAll(".date-choice").forEach(button => {
-  button.addEventListener("click", () => {
-    if (button.dataset.date === "custom") {
-      $("backupDate").showPicker?.();
-      $("backupDate").focus();
-      return;
-    }
+/* START */
 
-    selectBackupDate(button.dataset.date);
-  });
-});
-
-$("backupDate").addEventListener("change", event => {
-  if (!event.target.value) return;
-
-  selectedBackupDate = event.target.value;
-
-  document.querySelectorAll(".date-choice").forEach(button => {
-    button.classList.toggle("active", button.dataset.date === "custom");
-  });
-
-  renderSheets();
-});
-
-$("uncheckAllBtn").addEventListener("click", () => {
-  if (!confirm("Clear all completed statuses for this date?")) return;
-
-  backupStatus[selectedBackupDate] = {};
-  saveBackupStatus();
-  renderSheets();
-  showToast("All statuses cleared.");
-});
-
-/* INITIAL LOAD */
-
-$("currentDate").textContent = new Date().toLocaleDateString(
-  undefined,
-  { weekday: "short", day: "numeric", month: "short", year: "numeric" }
-);
-
-$("backupDate").value = selectedBackupDate;
-
+$("currentDate")?.textContent;
+updateMailDate();
+updateBackupDateUI();
 renderTemplates();
+renderDrafts();
 renderSheets();
