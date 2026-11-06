@@ -1,101 +1,154 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0e5963">
-  <title>Lakshman Mail Desk</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c5962">
+<title>Lakshman | Workspaces</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand"><div class="brand-mark">L</div><div><b>Lakshman</b><small>MAIL DESK</small></div></div>
-      <div class="side-label">WORKSPACE</div>
-      <button class="nav-item active" data-view="templates"><span>▤</span> Templates <em id="templateCount">10</em></button>
-      <button class="nav-item" data-view="drafts"><span>▱</span> Drafts <i class="dot"></i></button>
-      <button class="nav-item" data-view="workspace2"><span>▦</span> Workspace 2</button>
-      <div class="sidebar-bottom"><div class="avatar">L</div><div><b>Lakshman</b><small>Personal workspace</small></div></div>
-    </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <button class="menu-button" id="menuButton" aria-label="Open menu">☰</button>
-        <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
-        <div class="profile"><span>Lakshman<br><small>Focused mode</small></span><div class="avatar">L</div></div>
-      </header>
+<div class="app">
 
-      <section class="intro">
-        <h1 id="pageTitle">Ready when you are.</h1>
-        <div class="date-row" id="mailDateRow">
-          <span class="date-label">▦ &nbsp; Date for drafts</span>
-          <button class="date-choice selected" data-date="today">Today <small id="todayLabel"></small></button>
-          <button class="date-choice" data-date="tomorrow">Tomorrow <small id="tomorrowLabel"></small></button>
-          <label class="custom-date">Custom date <input type="date" id="customDate"></label>
-        </div>
-        <p class="date-note" id="mailDateNote"><span></span> Drafts will use <b id="activeDateLabel"></b></p>
-      </section>
+<div class="topbar">
+<span>LAKSHMAN WORKSPACE · PERSONAL PRODUCTIVITY</span>
+<span>Changes save automatically on this device</span>
+</div>
 
-      <section class="library-panel" id="libraryPanel">
-        <div class="panel-kicker">✧ &nbsp; YOUR LIBRARY</div>
-        <h2>Ten messages, already thought<br class="desktop-break"> through.</h2>
-        <p>Choose a template, check the details, and let Gmail do the last mile. Your words stay yours.</p>
-        <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search title, recipient, subject..."></div>
-        <div class="panel-foot"><span>✉ &nbsp; <b id="readyCount">10</b> of 10 templates ready</span><span>◷ &nbsp; Local changes save instantly</span></div>
-      </section>
+<header class="brandbar">
+<div class="brand">
+<div class="brandmark">L</div>
+<div>Lakshman
+<small>PERSONAL WORKSPACE</small>
+</div>
+</div>
 
-      <section class="workspace2-panel" id="workspace2Panel" hidden>
-        <div class="panel-kicker">✧ &nbsp; WORKSPACE 2</div>
-        <h2>Sheet Name Manager</h2>
-        <p class="workspace-description">Manage your sheet names. Edit, copy, add, or delete names whenever you need.</p>
-        <div class="sheet-date-box">
-          <div class="sheet-date-title">▦ &nbsp; Date for Workspace 2</div>
-          <div class="date-row">
-            <button class="date-choice selected" data-w2-date="today">Today <small id="w2TodayLabel"></small></button>
-            <button class="date-choice" data-w2-date="tomorrow">Tomorrow <small id="w2TomorrowLabel"></small></button>
-            <label class="custom-date">Custom date <input type="date" id="w2CustomDate"></label>
-          </div>
-          <p class="date-note"><span></span> Selected date: <b id="w2ActiveDateLabel"></b></p>
-        </div>
-        <div class="sheet-toolbar"><div><b>Saved sheet names</b><small id="sheetCount">22 sheet names</small></div><button class="secondary-button" id="clearAllSheets">Clear All</button></div>
-        <div class="sheet-list" id="sheetList"></div>
-        <button class="primary-button add-sheet-button" id="addSheetButton">+ Add Sheet Name</button>
-      </section>
+<nav class="nav">
+<button id="mailTab" class="active" onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
+<button id="backupTab" onclick="showWorkspace('backup')">▤ Sheet Backup</button>
+</nav>
+</header>
 
-      <section class="drafts-heading" id="draftsHeading" hidden>
-        <div><div class="panel-kicker">✧ &nbsp; YOUR WORKSPACE</div><h2>Saved drafts</h2><p>Your locally saved email drafts appear here.</p></div>
-        <button class="secondary-button" id="backTemplates">← Templates</button>
-      </section>
+<main>
 
-      <section class="template-grid" id="templateGrid"></section>
-      <section class="empty-state" id="emptyState" hidden>No matching templates found. Try another search.</section>
-      <footer>Made for thoughtful communication <span>•</span> Your changes stay in this browser</footer>
-    </main>
-  </div>
+<section id="mailWorkspace">
 
-  <div class="modal-backdrop" id="modalBackdrop" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-head"><div><div class="panel-kicker" id="modalKicker">TEMPLATE DETAILS</div><h2 id="modalTitle">Edit template</h2></div><button class="close-button" id="closeModal" aria-label="Close">×</button></div>
-      <div id="editFields">
-        <label>Template title<input id="editTitle"></label>
-        <div class="recipient-section"><div class="recipient-heading">To <button type="button" class="add-recipient" data-add-recipient="to">+ Add More</button></div><div id="toRecipients" class="recipient-list"></div></div>
-        <div class="recipient-section"><div class="recipient-heading">CC <button type="button" class="add-recipient" data-add-recipient="cc">+ Add More</button></div><div id="ccRecipients" class="recipient-list"></div></div>
-        <div class="recipient-section"><div class="recipient-heading">BCC <button type="button" class="add-recipient" data-add-recipient="bcc">+ Add More</button></div><div id="bccRecipients" class="recipient-list"></div></div>
-        <label>Subject<input id="editSubject"></label>
-        <label>Email message<textarea id="editBody" rows="9"></textarea></label>
-        <div class="modal-actions"><button class="secondary-button" id="cancelEdit">Cancel</button><button class="primary-button" id="saveEdit">Save changes</button></div>
-      </div>
-      <div id="previewFields" hidden>
-        <div class="preview-meta"><div><small>TO</small><p id="previewTo"></p></div><div><small>CC</small><p id="previewCc"></p></div><div><small>BCC</small><p id="previewBcc"></p></div><div><small>SUBJECT</small><p id="previewSubject"></p></div></div>
-        <article class="preview-body" id="previewBody"></article>
-        <div class="modal-actions"><button class="secondary-button" id="previewEdit">Edit template</button><button class="primary-button" id="previewCompose">↗ &nbsp; Compose in Gmail</button></div>
-      </div>
-    </section>
-  </div>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="script.js"></script>
+<div class="eyebrow">Personal communication workspace</div>
+<h1>Ready when you are.</h1>
+
+<p class="sub">
+Choose a template, review the details, and open it in your email app.
+Your drafts and edits stay in this browser.
+</p>
+
+<div class="toolbar">
+<strong>Date for drafts</strong>
+<div class="datepick">
+<button class="pill active" id="mailToday" onclick="setMailDate('today')">Today</button>
+<button class="pill" id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
+<input class="pill" type="date" id="mailCustom" onchange="setMailDate('custom')">
+</div>
+</div>
+
+<div class="panel">
+<div class="eyebrow">Your library</div>
+<div class="panelhead">
+<div>
+<h2>Ten messages, already thought through.</h2>
+<p>Choose a template, check the details, and let your email app do the last mile.</p>
+</div>
+</div>
+
+<input class="search" id="mailSearch"
+placeholder="⌕ Search title, recipient, subject..."
+oninput="renderMails()">
+
+<div class="meta">
+<span id="templateCount">10 of 10 templates ready</span>
+<span>◷ Local changes save instantly</span>
+</div>
+</div>
+
+<div class="cards" id="mailCards"></div>
+</section>
+
+
+<section id="backupWorkspace" class="hidden">
+
+<div class="eyebrow">Daily backup list</div>
+
+<h1>Keep every backup<br><em>accounted for.</em></h1>
+
+<p class="sub">
+Copy each dated sheet name, finish the backup in Google Sheets,
+then mark its status here. Checkmarks are saved for the selected date.
+</p>
+
+<div class="toolbar">
+<div>
+▦ <strong>Date on sheet names</strong>
+<div class="datehint" id="backupDateLabel"></div>
+</div>
+
+<div class="datepick">
+<button class="pill active" id="backupToday" onclick="setBackupDate('today')">Today</button>
+<button class="pill" id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
+<input class="pill" type="date" id="backupCustom" onchange="setBackupDate('custom')">
+</div>
+</div>
+
+<div class="backup-intro">
+<div>
+<h2>Your 20 sheets <span class="count" id="doneCount">0 / 20 done</span></h2>
+<p class="sub">Copy the dated sheet name and tick the box after backup.</p>
+</div>
+<button class="btn" onclick="clearChecks()">× Uncheck all</button>
+</div>
+
+<div class="sheetlist">
+<div class="sheethead">
+<span>SHEET NAME WITH DATE</span>
+<span>COPY NAME</span>
+<span>STATUS</span>
+</div>
+<div id="sheetRows"></div>
+</div>
+
+</section>
+
+</main>
+
+<footer>LAKSHMAN WORKSPACE · Built for your daily workflow</footer>
+</div>
+
+
+<div class="modalback hidden" id="modalBack" onclick="if(event.target===this)closeModal()">
+
+<div class="modal">
+<h2 id="modalTitle">Message preview</h2>
+
+<label>Recipient</label>
+<input id="editTo" placeholder="name@example.com">
+
+<label>Subject</label>
+<input id="editSubject">
+
+<label>Message</label>
+<textarea id="editBody"></textarea>
+
+<div class="modalactions">
+<button class="btn" onclick="closeModal()">Cancel</button>
+<button class="btn" onclick="copyEmail()">Copy message</button>
+<button class="btn primary" onclick="openEmail()">Open email app</button>
+</div>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
