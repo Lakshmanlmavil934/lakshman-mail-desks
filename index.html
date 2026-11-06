@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,139 +9,166 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="top-banner">
-    <span>LAKSHMAN WORKSPACE</span>
-    <span class="banner-note">Personal productivity · Your changes save on this device</span>
+
+<div class="app">
+  <header class="topbar">
+    <div>
+      <div class="brand">LAKSHMAN WORKSPACE</div>
+      <div class="subbrand">PERSONAL PRODUCTIVITY</div>
+    </div>
+    <div class="top-date" id="currentDate"></div>
   </header>
 
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#" aria-label="Lakshman home">
-        <span class="brand-mark">L</span>
-        <span><strong>Lakshman</strong><small>PERSONAL WORKSPACE</small></span>
-      </a>
+  <nav class="navigation">
+    <button class="nav-link active" data-workspace="mailWorkspace">✉ Mail Dashboard</button>
+    <button class="nav-link" data-workspace="backupWorkspace">▦ Sheets Backup</button>
+  </nav>
 
-      <div class="side-label">WORKSPACES</div>
-      <button class="nav-link active" data-workspace="mail">
-        <span class="nav-icon">✉</span><span>Mail dashboard</span><span class="nav-count" id="templateCount">10</span>
-      </button>
-      <button class="nav-link" data-workspace="backup">
-        <span class="nav-icon">▤</span><span>Sheets backup</span><span class="nav-count">20</span>
-      </button>
-
-      <div class="sidebar-bottom">
-        <div class="profile-dot">L</div>
-        <div><strong>Lakshman</strong><small>Focused mode</small></div>
+  <main>
+    <section id="mailWorkspace" class="workspace active">
+      <div class="section-heading">
+        <div>
+          <h1>Mail Dashboard</h1>
+          <p>Manage your email templates and compose messages.</p>
+        </div>
+        <button class="primary-btn" id="addTemplateBtn">＋ Add Template</button>
       </div>
-    </aside>
 
-    <main class="main">
-      <section class="workspace-view active" id="mailWorkspace">
-        <div class="page-head">
-          <div>
-            <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
-            <h1>Ready when you are.</h1>
-            <p class="muted">Choose a template, update recipients, and prepare your message.</p>
-          </div>
-          <div class="date-tools">
-            <span class="today-label" id="mailToday"></span>
-            <button class="soft-button" id="newTemplateBtn">＋ New template</button>
-          </div>
+      <div class="stats">
+        <div class="stat-card">
+          <span>Total Templates</span>
+          <strong id="templateCount">0</strong>
         </div>
+        <div class="stat-card">
+          <span>Ready to Use</span>
+          <strong id="templateReady">0</strong>
+        </div>
+      </div>
 
-        <div class="hero-card">
-          <div class="eyebrow">✧ YOUR LIBRARY</div>
-          <h2>Messages, already thought through.</h2>
-          <p>Pick a template, add as many To and Cc recipients as you need, then preview or compose.</p>
-          <input id="templateSearch" class="search-input" type="search" placeholder="⌕  Search title, recipient, subject...">
-          <div class="hero-meta"><span id="templateReady">10 templates ready</span><span>◷ Local changes save instantly</span></div>
-        </div>
+      <div class="toolbar">
+        <input id="templateSearch" type="search" placeholder="Search templates...">
+        <button class="secondary-btn" id="exportTemplatesBtn">Export</button>
+        <button class="secondary-btn" id="importTemplatesBtn">Import</button>
+        <input type="file" id="importTemplatesInput" accept=".json,application/json" hidden>
+      </div>
 
-        <div class="section-heading">
-          <div><h2>Your templates</h2><p class="muted">Edit any template or open it in the composer.</p></div>
-          <div class="heading-actions">
-            <button class="soft-button" id="exportTemplatesBtn">Export templates</button>
-            <label class="soft-button file-button">Import templates<input type="file" id="importTemplatesInput" accept=".json,application/json"></label>
-          </div>
-        </div>
-        <div class="template-grid" id="templateGrid"></div>
-        <div class="empty-state hidden" id="emptyTemplates">No templates found. Try another search or create a template.</div>
-      </section>
-
-      <section class="workspace-view" id="backupWorkspace">
-        <div class="page-head">
-          <div>
-            <div class="eyebrow">DAILY BACKUP LIST</div>
-            <h1>Keep every backup<br><span>accounted for.</span></h1>
-            <p class="muted">Copy each dated sheet name, finish the backup in Google Sheets, then mark its status here.</p>
-          </div>
-          <div class="date-tools"><span class="today-label" id="backupToday"></span></div>
-        </div>
-
-        <div class="date-panel">
-          <div class="date-label"><span>▦</span><div><strong>Date on sheet names</strong><small id="selectedDateText"></small></div></div>
-          <div class="date-controls">
-            <button class="date-choice active" data-date="today">Today</button>
-            <button class="date-choice" data-date="tomorrow">Tomorrow</button>
-            <label class="custom-date-label">Custom date <input type="date" id="backupDate"></label>
-          </div>
-        </div>
-
-        <div class="section-heading backup-heading">
-          <div><h2>Your 20 sheets <span class="progress-pill" id="progressText">0 / 20 done</span></h2><p class="muted">Copy the name with the selected date. Check the box after the backup is complete.</p></div>
-          <button class="soft-button" id="uncheckAllBtn">× Uncheck all</button>
-        </div>
-        <div class="backup-table-wrap">
-          <div class="table-head"><span>SHEET NAME WITH DATE</span><span>COPY NAME</span><span>STATUS</span></div>
-          <div id="sheetList"></div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div class="modal-backdrop hidden" id="templateModal">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-head"><div><div class="eyebrow">MESSAGE TEMPLATE</div><h2 id="modalTitle">Create template</h2></div><button class="icon-button" data-close="templateModal" aria-label="Close">×</button></div>
-      <form id="templateForm">
-        <input type="hidden" id="templateId">
-        <label>Template title<input id="formTitle" required placeholder="Project status update"></label>
-        <label>Email subject<input id="formSubject" required placeholder="Weekly project update"></label>
-        <div class="form-grid">
-          <label>To recipients <small>Separate addresses with commas</small><textarea id="formTo" rows="2" placeholder="name@example.com, team@example.com"></textarea></label>
-          <label>Cc recipients <small>Separate addresses with commas</small><textarea id="formCc" rows="2" placeholder="manager@example.com"></textarea></label>
-        </div>
-        <label>Message<textarea id="formBody" rows="7" required placeholder="Hello..."></textarea></label>
-        <div class="modal-actions"><button type="button" class="soft-button" data-close="templateModal">Cancel</button><button type="submit" class="primary-button">Save template</button></div>
-      </form>
+      <div id="templateGrid" class="template-grid"></div>
+      <div id="emptyTemplates" class="empty-state" hidden>
+        <h3>No templates found</h3>
+        <p>Add a new email template to get started.</p>
+      </div>
     </section>
-  </div>
 
-  <div class="modal-backdrop hidden" id="composeModal">
-    <section class="modal compose-modal" role="dialog" aria-modal="true" aria-labelledby="composeTitle">
-      <div class="modal-head"><div><div class="eyebrow">MAIL COMPOSER</div><h2 id="composeTitle">Prepare your message</h2></div><button class="icon-button" data-close="composeModal" aria-label="Close">×</button></div>
-      <form id="composeForm">
-        <input type="hidden" id="composeTemplateId">
-        <div class="recipient-section">
-          <div class="recipient-heading"><strong>To</strong><button type="button" class="text-button" id="addToBtn">＋ Add recipient</button></div>
-          <div id="toRows"></div>
+    <section id="backupWorkspace" class="workspace">
+      <div class="section-heading">
+        <div>
+          <h1>Sheets Backup</h1>
+          <p>Track your daily spreadsheet backup tasks.</p>
         </div>
-        <div class="recipient-section">
-          <div class="recipient-heading"><strong>Cc</strong><button type="button" class="text-button" id="addCcBtn">＋ Add Cc</button></div>
-          <div id="ccRows"></div>
+      </div>
+
+      <div class="backup-controls">
+        <div class="date-buttons">
+          <button class="date-choice active" data-date="today">Today</button>
+          <button class="date-choice" data-date="tomorrow">Tomorrow</button>
+          <button class="date-choice" data-date="custom">Custom Date</button>
         </div>
-        <label>Subject<input id="composeSubject" required></label>
-        <label>Message<textarea id="composeBody" rows="9" required></textarea></label>
-        <div class="modal-actions compose-actions">
-          <button type="button" class="soft-button" id="saveDraftBtn">Save draft</button>
-          <button type="button" class="soft-button" id="copyEmailBtn">Copy message</button>
-          <button type="submit" class="primary-button">Open in email app ↗</button>
+        <input type="date" id="backupDate">
+      </div>
+
+      <div class="backup-summary">
+        <div>
+          <span>Selected date</span>
+          <strong id="selectedDateText"></strong>
         </div>
-        <p class="form-hint">Opening your email app uses a mailto link. Drafts and templates are stored locally in this browser.</p>
-      </form>
+        <div>
+          <span>Completed</span>
+          <strong id="progressText">0 / 20</strong>
+        </div>
+      </div>
+
+      <div class="progress-track">
+        <div id="progressBar"></div>
+      </div>
+
+      <div class="backup-actions">
+        <button class="secondary-btn" id="uncheckAllBtn">Clear All Status</button>
+      </div>
+
+      <div id="sheetList" class="sheet-list"></div>
     </section>
-  </div>
+  </main>
 
-  <div class="toast" id="toast" role="status"></div>
-  <script src="script.js"></script>
+  <footer>LAKSHMAN WORKSPACE · PERSONAL PRODUCTIVITY</footer>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-backdrop" id="templateModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Template</h2>
+      <button class="close-btn" data-close="templateModal">×</button>
+    </div>
+
+    <form id="templateForm">
+      <input type="hidden" id="templateId">
+
+      <label>Template Name</label>
+      <input id="formTitle" required placeholder="Example: Daily Report">
+
+      <label>Subject</label>
+      <input id="formSubject" required placeholder="Email subject">
+
+      <label>To Email Addresses</label>
+      <div id="formToRows"></div>
+      <button type="button" class="small-btn" id="addFormToBtn">＋ Add To</button>
+
+      <label>CC Email Addresses</label>
+      <div id="formCcRows"></div>
+      <button type="button" class="small-btn" id="addFormCcBtn">＋ Add Cc</button>
+
+      <label>Email Body</label>
+      <textarea id="formBody" rows="7" required placeholder="Write your email here..."></textarea>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" data-close="templateModal">Cancel</button>
+        <button type="submit" class="primary-btn">Save Template</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-backdrop" id="composeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Email Preview</h2>
+      <button class="close-btn" data-close="composeModal">×</button>
+    </div>
+
+    <div class="preview-content">
+      <label>To</label>
+      <div id="previewTo"></div>
+
+      <label>Cc</label>
+      <div id="previewCc"></div>
+
+      <label>Subject</label>
+      <div id="composeSubject" class="preview-field"></div>
+
+      <label>Message</label>
+      <pre id="composeBody" class="preview-body"></pre>
+    </div>
+
+    <div class="modal-actions">
+      <button class="secondary-btn" data-close="composeModal">Close</button>
+      <button class="primary-btn" id="copyEmailBtn">Copy Email</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
