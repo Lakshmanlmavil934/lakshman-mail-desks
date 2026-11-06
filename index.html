@@ -1,136 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lakshman Workspaces</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0c5962" />
+<title>Lakshman | Workspaces</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<header class="top-header">
-  <div class="brand">
-    <div class="logo">L</div>
-    <div>
-      <h1>Lakshman Workspaces</h1>
-      <p>Your daily work management</p>
-    </div>
-  </div>
-</header>
-
-<main class="container">
-
-  <section class="welcome">
-    <p class="eyebrow">WORKSPACE</p>
-    <h2>Manage your work beautifully.</h2>
-    <p>Access your email templates and sheet backups in one place.</p>
-  </section>
-
-  <section class="workspace-grid">
-
-    <div class="workspace-card">
-      <div class="card-icon">✉</div>
-      <h2>Mail Dashboard</h2>
-      <p>Manage email templates, add multiple To and CC recipients, preview and send emails.</p>
-      <button onclick="showWorkspace('mailWorkspace')">Open Mail Dashboard</button>
-    </div>
-
-    <div class="workspace-card">
-      <div class="card-icon">▦</div>
-      <h2>Sheet Backup</h2>
-      <p>Manage your daily sheet backup checklist and rename sheet records.</p>
-      <button onclick="showWorkspace('sheetWorkspace')">Open Sheet Backup</button>
-    </div>
-
-  </section>
-
-  <!-- MAIL DASHBOARD -->
-
-  <section id="mailWorkspace" class="workspace hidden">
-
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">EMAIL MANAGEMENT</p>
-        <h2>Mail Dashboard</h2>
+<div class="app">
+  <div class="topbar"><span>LAKSHMAN WORKSPACE · PERSONAL PRODUCTIVITY</span><span>Changes save automatically on this device</span></div>
+  <header class="brandbar">
+    <div class="brand"><div class="brandmark">L</div><div>Lakshman<small>PERSONAL WORKSPACE</small></div></div>
+    <nav class="nav" aria-label="Workspaces">
+      <button id="mailTab" class="active" onclick="showWorkspace('mail')">✉ Mail Dashboard</button>
+      <button id="backupTab" onclick="showWorkspace('backup')">▤ Sheet Backup</button>
+    </nav>
+  </header>
+  <main>
+    <section id="mailWorkspace">
+      <div class="eyebrow">Personal communication workspace</div>
+      <h1>Ready when you are.</h1>
+      <p class="sub">Choose a template, review the details, and open it in your email app. Your drafts and edits stay in this browser.</p>
+      <div class="toolbar">
+        <strong style="font-size:12px">Date for drafts</strong>
+        <div class="datepick">
+          <button class="pill active" id="mailToday" onclick="setMailDate('today')">Today</button>
+          <button class="pill" id="mailTomorrow" onclick="setMailDate('tomorrow')">Tomorrow</button>
+          <input class="pill" style="max-width:155px" type="date" id="mailCustom" onchange="setMailDate('custom')" />
+        </div>
       </div>
-      <button class="secondary-btn" onclick="goHome()">Back Home</button>
-    </div>
-
-    <div class="toolbar">
-      <input type="date" id="mailDate">
-      <input type="search" id="searchMail" placeholder="Search email templates...">
-    </div>
-
-    <div id="mailList" class="mail-list"></div>
-
-  </section>
-
-  <!-- SHEET BACKUP -->
-
-  <section id="sheetWorkspace" class="workspace hidden">
-
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">BACKUP MANAGEMENT</p>
-        <h2>Sheet Backup</h2>
+      <div class="panel">
+        <div class="eyebrow">Your library</div>
+        <div class="panelhead"><div><h2>Ten messages, already thought through.</h2><p>Choose a template, check the details, and let your email app do the last mile.</p></div></div>
+        <input class="search" id="mailSearch" placeholder="⌕  Search title, recipient, subject..." oninput="renderMails()" />
+        <div class="meta"><span id="templateCount">10 of 10 templates ready</span><span>◷ Local changes save instantly</span></div>
       </div>
-      <button class="secondary-btn" onclick="goHome()">Back Home</button>
-    </div>
+      <div class="cards" id="mailCards"></div>
+    </section>
 
-    <div class="toolbar">
-      <input type="date" id="sheetDate">
-      <input type="search" id="searchSheet" placeholder="Search sheets...">
-    </div>
-
-    <div class="backup-summary">
-      <span id="backupCount">0 of 20 completed</span>
-      <button class="secondary-btn" onclick="clearBackup()">Clear checks</button>
-    </div>
-
-    <div id="sheetList" class="sheet-list"></div>
-
-  </section>
-
-</main>
-
-<!-- EMAIL MODAL -->
-
-<div id="emailModal" class="modal hidden">
-  <div class="modal-content">
-
-    <div class="modal-header">
-      <h2>Email Preview</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <label>Email subject</label>
-    <input id="emailSubject" type="text">
-
-    <div class="recipient-heading">
-      <label>To recipients</label>
-      <button class="add-recipient" onclick="addRecipient('to')">+ Add To</button>
-    </div>
+    <section id="backupWorkspace" class="hidden">
+      <div class="eyebrow">Daily backup list</div>
+      <h1>Keep every backup<br><em>accounted for.</em></h1>
+      <p class="sub">Copy each dated sheet name, finish the backup in Google Sheets, then mark its status here. Checkmarks are saved for the selected date.</p>
+      <div class="toolbar">
+        <div>▦ &nbsp;<strong>Date on sheet names</strong><div class="datehint" id="backupDateLabel"></div></div>
+        <div class="datepick">
+          <button class="pill active" id="backupToday" onclick="setBackupDate('today')">Today</button>
+          <button class="pill" id="backupTomorrow" onclick="setBackupDate('tomorrow')">Tomorrow</button>
+          <input class="pill" type="date" id="backupCustom" onchange="setBackupDate('custom')" />
+        </div>
+      </div>
+      <div class="backup-intro"><div><h2 style="font:500 26px Georgia,serif;margin:0">Your 20 sheets <span class="count" id="doneCount">0 / 20 done</span></h2><p class="sub" style="margin:7px 0 0">Copy name puts the dated sheet name on your clipboard. Tick the box after the backup is finished.</p></div><button class="btn" onclick="clearChecks()">× Uncheck all</button></div>
+      <div class="sheetlist">
+        <div class="sheethead"><span>SHEET NAME WITH DATE</span><span>COPY NAME</span><span>STATUS</span></div>
+        <div id="sheetRows"></div>
+      </div>
+    </section>
+  </main>
+  <footer>LAKSHMAN WORKSPACE · Built for your daily workflow</footer>
+</div>
+<div class="modalback hidden" id="modalBack" onclick="if(event.target===this)closeModal()">
+  <div class="modal"><h2 id="modalTitle">Message preview</h2>
+    <div class="recipient-heading"><label>To</label><button type="button" class="add-recipient" onclick="addRecipient('to')">+ Add To</button></div>
     <div id="toFields"></div>
-
-    <div class="recipient-heading">
-      <label>CC recipients</label>
-      <button class="add-recipient" onclick="addRecipient('cc')">+ Add CC</button>
-    </div>
+    <div class="recipient-heading"><label>CC</label><button type="button" class="add-recipient" onclick="addRecipient('cc')">+ Add CC</button></div>
     <div id="ccFields"></div>
-
-    <label>Email message</label>
-    <textarea id="emailBody" rows="10"></textarea>
-
-    <div class="modal-actions">
-      <button onclick="copyEmail()">Copy Email</button>
-      <button onclick="openEmail()">Open Email App</button>
-      <button class="secondary-btn" onclick="closeModal()">Close</button>
-    </div>
-
+    <label>Subject</label><input id="editSubject" />
+    <label>Message</label><textarea id="editBody"></textarea>
+    <div class="modalactions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn" onclick="copyEmail()">Copy message</button><button class="btn primary" onclick="openEmail()">Open email app</button></div>
   </div>
 </div>
-
+<div class="toast" id="toast"></div>
 <script src="script.js"></script>
-</body>
-</html>
+</body></html>
