@@ -1,4 +1,10 @@
 
+/* ==========================================
+   LAKSHMAN PERSONAL WORKSPACE
+   MAIL DASHBOARD + SHEETS BACKUP
+   DIRECT GMAIL COMPOSE IN NEW TAB
+========================================== */
+
 const STORAGE_KEY = "lakshman_workspace_v1";
 
 const SHEETS_DEFAULT = [
@@ -23,6 +29,8 @@ const SHEETS_DEFAULT = [
   "Sheet 19",
   "Sheet 20"
 ];
+
+/* EMAIL TEMPLATES */
 
 const DEFAULT_TEMPLATES = [
 {
@@ -107,6 +115,8 @@ body:"Hi team,\n\nThe task [Task Name] has been completed.\n\nSummary:\n[Add a s
 }
 ];
 
+/* LOAD SAVED DATA */
+
 function structuredCloneSafe(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -147,6 +157,8 @@ function loadState() {
 }
 
 let state = loadState();
+let activeDate = dateISO(new Date());
+let toastTimer;
 
 function saveState() {
   localStorage.setItem(
@@ -154,6 +166,8 @@ function saveState() {
     JSON.stringify(state)
   );
 }
+
+/* DATE FUNCTIONS */
 
 function dateISO(date) {
   const y = date.getFullYear();
@@ -184,6 +198,8 @@ function niceDate(value) {
   });
 }
 
+/* SECURITY AND NOTIFICATIONS */
+
 function escapeHTML(value = "") {
   return String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -193,9 +209,6 @@ function escapeHTML(value = "") {
     "'": "&#39;"
   }[char]));
 }
-
-let activeDate = dateISO(new Date());
-let toastTimer;
 
 function showToast(message) {
   const element = document.getElementById("toast");
@@ -210,6 +223,8 @@ function showToast(message) {
   }, 2300);
 }
 
+/* COPY TO CLIPBOARD */
+
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -221,6 +236,7 @@ async function copyText(text) {
     area.value = text;
     document.body.appendChild(area);
     area.select();
+
     document.execCommand("copy");
     area.remove();
 
@@ -228,14 +244,19 @@ async function copyText(text) {
   }
 }
 
-/* WORKSPACE NAVIGATION */
+/* ==========================================
+   WORKSPACE NAVIGATION
+========================================== */
 
 function switchWorkspace(which) {
+
   document.querySelectorAll(".nav-link").forEach(button => {
+
     button.classList.toggle(
       "active",
       button.dataset.workspace === which
     );
+
   });
 
   document.getElementById("mailWorkspace")
@@ -246,18 +267,24 @@ function switchWorkspace(which) {
 }
 
 document.querySelectorAll(".nav-link").forEach(button => {
+
   button.addEventListener("click", () => {
     switchWorkspace(button.dataset.workspace);
   });
+
 });
 
-/* EMAIL TEMPLATE DASHBOARD */
+/* ==========================================
+   MAIL DASHBOARD
+========================================== */
 
 function renderTemplates() {
+
   const q = document.getElementById("templateSearch")
     .value.trim().toLowerCase();
 
   const list = state.templates.filter(template => {
+
     return [
       template.title,
       template.subject,
@@ -265,6 +292,7 @@ function renderTemplates() {
       template.cc,
       template.body
     ].join(" ").toLowerCase().includes(q);
+
   });
 
   document.getElementById("templateCount").textContent =
@@ -276,19 +304,30 @@ function renderTemplates() {
   const grid = document.getElementById("templateGrid");
 
   grid.innerHTML = list.map(template => `
+
     <article class="template-card">
 
       <div class="card-top">
+
         <span class="ready-tag">
+
           <span class="card-number">
             ${String(state.templates.indexOf(template) + 1).padStart(2, "0")}
           </span>
+
           READY
+
         </span>
 
-        <button class="icon-button"
+        <button
+          class="icon-button"
           data-edit="${escapeHTML(template.id)}"
-          title="Edit template">✎</button>
+          title="Edit template">
+
+          ✎
+
+        </button>
+
       </div>
 
       <h3>${escapeHTML(template.title)}</h3>
@@ -303,51 +342,82 @@ function renderTemplates() {
       </p>
 
       <div class="card-meta">
-        <span>${escapeHTML(template.to || "No To recipient")}</span>
-        <span>${template.cc ? "Cc added" : "No Cc"}</span>
+
+        <span>
+          ${escapeHTML(template.to || "No To recipient")}
+        </span>
+
+        <span>
+          ${template.cc ? "Cc added" : "No Cc"}
+        </span>
+
       </div>
 
       <div class="card-actions">
-        <button class="primary-button"
+
+        <button
+          class="primary-button"
           data-preview="${escapeHTML(template.id)}">
+
           Preview ↗
+
         </button>
 
-        <button class="compose-button"
+        <button
+          class="compose-button"
           data-compose="${escapeHTML(template.id)}">
+
           ➤ Compose
+
         </button>
+
       </div>
 
     </article>
+
   `).join("");
 
   document.getElementById("emptyTemplates")
     .classList.toggle("hidden", list.length !== 0);
 
+  /* EDIT BUTTON */
+
   grid.querySelectorAll("[data-edit]").forEach(button => {
+
     button.addEventListener("click", () => {
       openTemplateForm(button.dataset.edit);
     });
+
   });
+
+  /* DIRECT GMAIL COMPOSE BUTTON */
 
   grid.querySelectorAll("[data-compose]").forEach(button => {
+
     button.addEventListener("click", () => {
-      openComposer(button.dataset.compose);
+      openGmailComposer(button.dataset.compose);
     });
+
   });
 
+  /* PREVIEW BUTTON */
+
   grid.querySelectorAll("[data-preview]").forEach(button => {
+
     button.addEventListener("click", () => {
       openComposer(button.dataset.preview);
     });
+
   });
+
 }
 
 document.getElementById("templateSearch")
   .addEventListener("input", renderTemplates);
 
-/* MODALS */
+/* ==========================================
+   MODAL FUNCTIONS
+========================================== */
 
 function openModal(id) {
   document.getElementById(id).classList.remove("hidden");
@@ -358,22 +428,31 @@ function closeModal(id) {
 }
 
 document.querySelectorAll("[data-close]").forEach(button => {
+
   button.addEventListener("click", () => {
     closeModal(button.dataset.close);
   });
+
 });
 
 document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+
   backdrop.addEventListener("click", event => {
+
     if (event.target === backdrop) {
       backdrop.classList.add("hidden");
     }
+
   });
+
 });
 
-/* CREATE AND EDIT TEMPLATES */
+/* ==========================================
+   CREATE AND EDIT EMAIL TEMPLATES
+========================================== */
 
 function openTemplateForm(id) {
+
   const template = state.templates.find(item => item.id === id);
 
   document.getElementById("templateForm").reset();
@@ -410,19 +489,34 @@ document.getElementById("templateForm")
 
     event.preventDefault();
 
-    const id = document.getElementById("templateId").value ||
+    const id =
+      document.getElementById("templateId").value ||
       `t${Date.now()}`;
 
     const item = {
+
       id,
-      title: document.getElementById("formTitle").value.trim(),
-      subject: document.getElementById("formSubject").value.trim(),
-      to: document.getElementById("formTo").value.trim(),
-      cc: document.getElementById("formCc").value.trim(),
-      body: document.getElementById("formBody").value
+
+      title: document.getElementById("formTitle")
+        .value.trim(),
+
+      subject: document.getElementById("formSubject")
+        .value.trim(),
+
+      to: document.getElementById("formTo")
+        .value.trim(),
+
+      cc: document.getElementById("formCc")
+        .value.trim(),
+
+      body: document.getElementById("formBody")
+        .value
+
     };
 
-    const index = state.templates.findIndex(t => t.id === id);
+    const index = state.templates.findIndex(
+      template => template.id === id
+    );
 
     if (index >= 0) {
       state.templates[index] = item;
@@ -432,42 +526,61 @@ document.getElementById("templateForm")
 
     saveState();
     renderTemplates();
+
     closeModal("templateModal");
+
     showToast("Template saved");
+
   });
 
-/* MULTIPLE TO AND CC RECIPIENTS */
+/* ==========================================
+   MULTIPLE TO AND CC RECIPIENTS
+========================================== */
 
 function addRecipientRow(containerId, value = "") {
+
   const container = document.getElementById(containerId);
 
   const row = document.createElement("div");
+
   row.className = "recipient-row";
 
   row.innerHTML = `
-    <input type="email"
+
+    <input
+      type="email"
       placeholder="email@example.com"
       aria-label="Email recipient">
 
-    <button type="button"
+    <button
+      type="button"
       class="remove-recipient"
-      aria-label="Remove recipient">×</button>
+      aria-label="Remove recipient">
+
+      ×
+
+    </button>
+
   `;
 
   row.querySelector("input").value = value;
 
   row.querySelector("button").addEventListener("click", () => {
+
     if (container.children.length > 1) {
       row.remove();
     } else {
       row.querySelector("input").value = "";
     }
+
   });
 
   container.appendChild(row);
+
 }
 
 function setRecipientRows(containerId, raw) {
+
   const container = document.getElementById(containerId);
 
   container.innerHTML = "";
@@ -478,24 +591,35 @@ function setRecipientRows(containerId, raw) {
     .filter(Boolean);
 
   (values.length ? values : [""]).forEach(value => {
+
     addRecipientRow(containerId, value);
+
   });
+
 }
 
 function recipientValues(containerId) {
+
   return [...document.querySelectorAll(`#${containerId} input`)]
     .map(input => input.value.trim())
     .filter(Boolean);
+
 }
 
-/* EMAIL COMPOSER */
+/* ==========================================
+   WEBSITE EMAIL PREVIEW
+========================================== */
 
 function openComposer(id) {
-  const template = state.templates.find(item => item.id === id);
+
+  const template = state.templates.find(
+    item => item.id === id
+  );
 
   if (!template) return;
 
-  document.getElementById("composeTemplateId").value = template.id;
+  document.getElementById("composeTemplateId").value =
+    template.id;
 
   document.getElementById("composeSubject").value =
     template.subject;
@@ -504,23 +628,106 @@ function openComposer(id) {
     template.body;
 
   setRecipientRows("toRows", template.to);
+
   setRecipientRows("ccRows", template.cc);
 
   openModal("composeModal");
+
 }
+
+/* ==========================================
+   DIRECT GMAIL COMPOSE IN NEW CHROME TAB
+========================================== */
+
+function openGmailComposer(id) {
+
+  const template = state.templates.find(
+    item => item.id === id
+  );
+
+  if (!template) {
+
+    showToast("Template not found");
+
+    return;
+
+  }
+
+  const to = String(template.to || "")
+    .split(/[,\n;]/)
+    .map(value => value.trim())
+    .filter(Boolean)
+    .join(",");
+
+  const cc = String(template.cc || "")
+    .split(/[,\n;]/)
+    .map(value => value.trim())
+    .filter(Boolean)
+    .join(",");
+
+  const params = new URLSearchParams();
+
+  params.set("view", "cm");
+
+  params.set("fs", "1");
+
+  if (to) {
+    params.set("to", to);
+  }
+
+  if (cc) {
+    params.set("cc", cc);
+  }
+
+  params.set("su", template.subject || "");
+
+  params.set("body", template.body || "");
+
+  const gmailURL =
+    "https://mail.google.com/mail/?" +
+    params.toString();
+
+  /* OPEN GMAIL IN NEW TAB */
+
+  const newTab = window.open(
+    gmailURL,
+    "_blank"
+  );
+
+  if (!newTab) {
+
+    showToast(
+      "Allow pop-ups in Chrome and try again"
+    );
+
+  }
+
+}
+
+/* ==========================================
+   ADD MORE TO AND CC IN PREVIEW COMPOSER
+========================================== */
 
 document.getElementById("addToBtn")
   .addEventListener("click", () => {
+
     addRecipientRow("toRows");
+
   });
 
 document.getElementById("addCcBtn")
   .addEventListener("click", () => {
+
     addRecipientRow("ccRows");
+
   });
 
+/* COMPOSER DATA */
+
 function composeData() {
+
   return {
+
     id: document.getElementById("composeTemplateId").value,
 
     to: recipientValues("toRows"),
@@ -530,10 +737,15 @@ function composeData() {
     subject: document.getElementById("composeSubject").value,
 
     body: document.getElementById("composeBody").value
+
   };
+
 }
 
+/* MAILTO */
+
 function mailtoURL(data) {
+
   const params = new URLSearchParams();
 
   if (data.cc.length) {
@@ -549,9 +761,10 @@ function mailtoURL(data) {
   }
 
   return `mailto:${data.to.join(",")}?${params.toString()}`;
+
 }
 
-/* OPEN EMAIL APPLICATION */
+/* OPEN EMAIL APP FROM PREVIEW */
 
 document.getElementById("composeForm")
   .addEventListener("submit", event => {
@@ -561,13 +774,17 @@ document.getElementById("composeForm")
     const data = composeData();
 
     if (!data.to.length) {
+
       showToast("Add at least one To recipient");
+
       return;
+
     }
 
     window.location.href = mailtoURL(data);
 
     showToast("Opening your email app");
+
   });
 
 /* SAVE DRAFT */
@@ -578,21 +795,28 @@ document.getElementById("saveDraftBtn")
     const data = composeData();
 
     if (!data.subject.trim() && !data.body.trim()) {
+
       showToast("Nothing to save yet");
+
       return;
+
     }
 
     state.drafts.unshift({
+
       ...data,
+
       savedAt: new Date().toISOString()
+
     });
 
     saveState();
 
     showToast("Draft saved on this device");
+
   });
 
-/* COPY EMAIL */
+/* COPY COMPLETE EMAIL */
 
 document.getElementById("copyEmailBtn")
   .addEventListener("click", () => {
@@ -600,22 +824,32 @@ document.getElementById("copyEmailBtn")
     const data = composeData();
 
     const text =
+
       `To: ${data.to.join(", ")}\n` +
+
       `Cc: ${data.cc.join(", ")}\n` +
+
       `Subject: ${data.subject}\n\n` +
+
       data.body;
 
     copyText(text);
+
   });
 
-/* EXPORT TEMPLATES */
+/* ==========================================
+   EXPORT EMAIL TEMPLATES
+========================================== */
 
 document.getElementById("exportTemplatesBtn")
   .addEventListener("click", () => {
 
     const blob = new Blob(
+
       [JSON.stringify(state.templates, null, 2)],
+
       { type: "application/json" }
+
     );
 
     const url = URL.createObjectURL(blob);
@@ -623,6 +857,7 @@ document.getElementById("exportTemplatesBtn")
     const link = document.createElement("a");
 
     link.href = url;
+
     link.download = "lakshman-mail-templates.json";
 
     link.click();
@@ -630,9 +865,12 @@ document.getElementById("exportTemplatesBtn")
     URL.revokeObjectURL(url);
 
     showToast("Templates exported");
+
   });
 
-/* IMPORT TEMPLATES */
+/* ==========================================
+   IMPORT EMAIL TEMPLATES
+========================================== */
 
 document.getElementById("importTemplatesInput")
   .addEventListener("change", async event => {
@@ -650,17 +888,27 @@ document.getElementById("importTemplatesInput")
       }
 
       const incoming = parsed
+
         .filter(template =>
           template &&
           typeof template.title === "string" &&
           typeof template.subject === "string" &&
           typeof template.body === "string"
         )
+
         .map((template, index) => ({
+
           ...template,
-          id: String(template.id || `import-${Date.now()}-${index}`),
+
+          id: String(
+            template.id ||
+            `import-${Date.now()}-${index}`
+          ),
+
           to: String(template.to || ""),
+
           cc: String(template.cc || "")
+
         }));
 
       if (!incoming.length) {
@@ -668,7 +916,10 @@ document.getElementById("importTemplatesInput")
       }
 
       const map = new Map(
-        state.templates.map(template => [template.id, template])
+        state.templates.map(template => [
+          template.id,
+          template
+        ])
       );
 
       incoming.forEach(template => {
@@ -678,39 +929,55 @@ document.getElementById("importTemplatesInput")
       state.templates = [...map.values()];
 
       saveState();
+
       renderTemplates();
 
-      showToast(`${incoming.length} template(s) imported`);
+      showToast(
+        `${incoming.length} template(s) imported`
+      );
 
     } catch (error) {
 
-      showToast("Import failed: choose a valid templates JSON file");
+      showToast(
+        "Import failed: choose a valid templates JSON file"
+      );
 
     }
 
     event.target.value = "";
+
   });
 
-/* SHEETS BACKUP */
+/* ==========================================
+   SHEETS BACKUP WORKSPACE
+========================================== */
 
 function currentChecks() {
+
   return state.checks[activeDate] ||
+
     (state.checks[activeDate] = {});
+
 }
 
 function renderSheets() {
 
   const list = document.getElementById("sheetList");
+
   const checks = currentChecks();
 
   const done = state.sheetNames.filter((name, index) => {
+
     return !!checks[index];
+
   }).length;
 
   document.getElementById("progressText").textContent =
+
     `${done} / ${state.sheetNames.length} done`;
 
   document.getElementById("selectedDateText").textContent =
+
     niceDate(activeDate);
 
   list.innerHTML = state.sheetNames.map((name, index) => {
@@ -718,6 +985,7 @@ function renderSheets() {
     const checked = !!checks[index];
 
     return `
+
       <div class="sheet-row ${checked ? "done" : ""}">
 
         <div class="sheet-info">
@@ -725,7 +993,9 @@ function renderSheets() {
           <span class="sheet-icon">▤</span>
 
           <div>
+
             <div>
+
               <span class="sheet-name">
                 ${escapeHTML(name)}
               </span>
@@ -734,36 +1004,57 @@ function renderSheets() {
                 - ${displayDate(activeDate)}
               </span>
 
-              <button class="edit-sheet"
+              <button
+                class="edit-sheet"
                 data-rename="${index}"
-                title="Rename sheet">✎</button>
+                title="Rename sheet">
+
+                ✎
+
+              </button>
+
             </div>
 
             <div class="sheet-sub">
               Sheet ${String(index + 1).padStart(2, "0")}
             </div>
+
           </div>
 
         </div>
 
         <div>
-          <button class="copy-button" data-copy="${index}">
+
+          <button
+            class="copy-button"
+            data-copy="${index}">
+
             ▢ Copy name
+
           </button>
+
         </div>
 
         <label class="status-check">
-          <input type="checkbox"
+
+          <input
+            type="checkbox"
             data-check="${index}"
             ${checked ? "checked" : ""}>
 
-          <span>${checked ? "Completed" : "Not taken"}</span>
+          <span>
+            ${checked ? "Completed" : "Not taken"}
+          </span>
+
         </label>
 
       </div>
+
     `;
 
   }).join("");
+
+  /* COPY SHEET NAME */
 
   list.querySelectorAll("[data-copy]").forEach(button => {
 
@@ -772,12 +1063,16 @@ function renderSheets() {
       const index = Number(button.dataset.copy);
 
       copyText(
+
         `${state.sheetNames[index]} - ${displayDate(activeDate)}`
+
       );
 
     });
 
   });
+
+  /* BACKUP STATUS */
 
   list.querySelectorAll("[data-check]").forEach(button => {
 
@@ -788,11 +1083,14 @@ function renderSheets() {
       currentChecks()[index] = button.checked;
 
       saveState();
+
       renderSheets();
 
     });
 
   });
+
+  /* RENAME SHEET */
 
   list.querySelectorAll("[data-rename]").forEach(button => {
 
@@ -801,8 +1099,11 @@ function renderSheets() {
       const index = Number(button.dataset.rename);
 
       const next = prompt(
+
         "Enter sheet name:",
+
         state.sheetNames[index]
+
       );
 
       if (next && next.trim()) {
@@ -810,6 +1111,7 @@ function renderSheets() {
         state.sheetNames[index] = next.trim();
 
         saveState();
+
         renderSheets();
 
       }
@@ -820,7 +1122,9 @@ function renderSheets() {
 
 }
 
-/* BACKUP DATE CONTROLS */
+/* ==========================================
+   BACKUP DATE CONTROLS
+========================================== */
 
 function setBackupDate(value) {
 
@@ -831,22 +1135,33 @@ function setBackupDate(value) {
   document.querySelectorAll(".date-choice").forEach(button => {
 
     const isToday =
+
       button.dataset.date === "today" &&
+
       value === dateISO(new Date());
 
     const tomorrow = new Date();
+
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const isTomorrow =
+
       button.dataset.date === "tomorrow" &&
+
       value === dateISO(tomorrow);
 
-    button.classList.toggle("active", isToday || isTomorrow);
+    button.classList.toggle(
+      "active",
+      isToday || isTomorrow
+    );
 
   });
 
   renderSheets();
+
 }
+
+/* TODAY AND TOMORROW */
 
 document.querySelectorAll(".date-choice").forEach(button => {
 
@@ -855,7 +1170,9 @@ document.querySelectorAll(".date-choice").forEach(button => {
     const date = new Date();
 
     if (button.dataset.date === "tomorrow") {
+
       date.setDate(date.getDate() + 1);
+
     }
 
     setBackupDate(dateISO(date));
@@ -864,11 +1181,15 @@ document.querySelectorAll(".date-choice").forEach(button => {
 
 });
 
+/* CUSTOM DATE */
+
 document.getElementById("backupDate")
   .addEventListener("change", event => {
 
     if (event.target.value) {
+
       setBackupDate(event.target.value);
+
     }
 
   });
@@ -878,20 +1199,29 @@ document.getElementById("backupDate")
 document.getElementById("uncheckAllBtn")
   .addEventListener("click", () => {
 
-    if (!confirm("Clear all completed checkmarks for this date?")) {
+    if (!confirm(
+      "Clear all completed checkmarks for this date?"
+    )) {
+
       return;
+
     }
 
     state.checks[activeDate] = {};
 
     saveState();
+
     renderSheets();
 
-    showToast("All statuses cleared for this date");
+    showToast(
+      "All statuses cleared for this date"
+    );
 
   });
 
-/* START WEBSITE */
+/* ==========================================
+   INITIALIZE WEBSITE
+========================================== */
 
 function init() {
 
