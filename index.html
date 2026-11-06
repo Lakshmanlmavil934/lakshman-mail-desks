@@ -3,166 +3,252 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0c5962">
-  <title>Lakshman | Workspaces</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#105864">
+  <title>Lakshman Workspace</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="app">
-  <header class="topbar">
-    <div>
-      <div class="brand">LAKSHMAN WORKSPACE</div>
-      <div class="subbrand">PERSONAL PRODUCTIVITY</div>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">L</div>
+      <div>
+        <strong>Lakshman</strong>
+        <small>MAIL DESK</small>
+      </div>
     </div>
-    <div class="top-date" id="currentDate"></div>
-  </header>
 
-  <nav class="navigation">
-    <button class="nav-link active" data-workspace="mailWorkspace">✉ Mail Dashboard</button>
-    <button class="nav-link" data-workspace="backupWorkspace">▦ Sheets Backup</button>
-  </nav>
+    <div class="side-label">WORKSPACE</div>
 
-  <main>
-    <section id="mailWorkspace" class="workspace active">
-      <div class="section-heading">
+    <button class="side-link active" data-page="mailPage">
+      <span>▤</span> Templates <span class="side-count" id="templateSideCount">10</span>
+    </button>
+
+    <button class="side-link" data-page="draftsPage">
+      <span>▱</span> Drafts <span class="draft-dot"></span>
+    </button>
+
+    <div class="side-bottom">
+      <div class="side-label">WORKSPACE 2</div>
+      <button class="side-link" data-page="backupPage">
+        <span>▦</span> Backup List
+      </button>
+      <div class="side-note">PERSONAL PRODUCTIVITY</div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="mobile-header">
+      <div class="logo-icon">L</div>
+      <strong>Lakshman Workspace</strong>
+      <button id="mobileMenuBtn" aria-label="Open menu">☰</button>
+    </header>
+
+    <!-- MAIL TEMPLATES -->
+    <section id="mailPage" class="page active">
+
+      <header class="page-top">
         <div>
-          <h1>Mail Dashboard</h1>
-          <p>Manage your email templates and compose messages.</p>
+          <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
+          <h1>Ready when you are.</h1>
         </div>
-        <button class="primary-btn" id="addTemplateBtn">＋ Add Template</button>
+        <div class="profile">
+          <div>
+            <strong>Lakshman</strong>
+            <small>Focused mode</small>
+          </div>
+          <div class="avatar">L</div>
+        </div>
+      </header>
+
+      <div class="date-strip">
+        <span class="date-label">▦ &nbsp; Date for drafts</span>
+        <button class="date-choice active" data-date="today">
+          Today <small id="todayDate"></small>
+        </button>
+        <button class="date-choice" data-date="tomorrow">
+          Tomorrow <small id="tomorrowDate"></small>
+        </button>
+        <label class="custom-date">
+          Custom date
+          <input type="date" id="mailCustomDate">
+        </label>
       </div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <span>Total Templates</span>
-          <strong id="templateCount">0</strong>
-        </div>
-        <div class="stat-card">
-          <span>Ready to Use</span>
-          <strong id="templateReady">0</strong>
-        </div>
-      </div>
+      <p class="date-info">● Drafts will use <strong id="mailSelectedDate"></strong></p>
 
-      <div class="toolbar">
-        <input id="templateSearch" type="search" placeholder="Search templates...">
-        <button class="secondary-btn" id="exportTemplatesBtn">Export</button>
-        <button class="secondary-btn" id="importTemplatesBtn">Import</button>
-        <input type="file" id="importTemplatesInput" accept=".json,application/json" hidden>
+      <section class="library-panel">
+        <div class="eyebrow">✧ &nbsp; YOUR LIBRARY</div>
+        <h2>Ten messages, already thought through.</h2>
+        <p>Choose a template, check the details, and let Gmail do the last mile. Your words stay yours.</p>
+
+        <input type="search" id="templateSearch" placeholder="⌕  Search title, recipient, subject...">
+
+        <div class="library-footer">
+          <span>✉ <strong id="readyCount">10 of 10</strong> templates ready</span>
+          <span>◷ Local changes save instantly</span>
+        </div>
+      </section>
+
+      <div class="template-heading">
+        <div>
+          <h3>Your templates</h3>
+          <p>Choose a message to preview or compose.</p>
+        </div>
+        <button class="add-btn" id="addTemplateBtn">＋ Add template</button>
       </div>
 
       <div id="templateGrid" class="template-grid"></div>
+
       <div id="emptyTemplates" class="empty-state" hidden>
-        <h3>No templates found</h3>
-        <p>Add a new email template to get started.</p>
+        No templates found.
       </div>
+
     </section>
 
-    <section id="backupWorkspace" class="workspace">
-      <div class="section-heading">
+    <!-- DRAFTS -->
+    <section id="draftsPage" class="page">
+      <header class="page-top">
         <div>
-          <h1>Sheets Backup</h1>
-          <p>Track your daily spreadsheet backup tasks.</p>
+          <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
+          <h1>Your drafts.</h1>
         </div>
-      </div>
+      </header>
 
-      <div class="backup-controls">
-        <div class="date-buttons">
-          <button class="date-choice active" data-date="today">Today</button>
-          <button class="date-choice" data-date="tomorrow">Tomorrow</button>
-          <button class="date-choice" data-date="custom">Custom Date</button>
-        </div>
-        <input type="date" id="backupDate">
-      </div>
+      <section class="library-panel">
+        <div class="eyebrow">SAVED LOCALLY</div>
+        <h2>Messages in progress.</h2>
+        <p>These are drafts saved in this browser. Open one to continue editing or compose it in Gmail.</p>
+      </section>
 
-      <div class="backup-summary">
-        <div>
-          <span>Selected date</span>
-          <strong id="selectedDateText"></strong>
-        </div>
-        <div>
-          <span>Completed</span>
-          <strong id="progressText">0 / 20</strong>
-        </div>
-      </div>
-
-      <div class="progress-track">
-        <div id="progressBar"></div>
-      </div>
-
-      <div class="backup-actions">
-        <button class="secondary-btn" id="uncheckAllBtn">Clear All Status</button>
-      </div>
-
-      <div id="sheetList" class="sheet-list"></div>
+      <div id="draftList" class="draft-list"></div>
     </section>
+
+    <!-- BACKUP LIST -->
+    <section id="backupPage" class="page backup-page">
+
+      <header class="backup-topbar">
+        <div class="backup-brand">
+          <div class="backup-logo">▦</div>
+          <div>
+            <strong>Lakshman</strong>
+            <small>BACKUP LIST / 2.0</small>
+          </div>
+        </div>
+        <button class="dots-btn" aria-label="More options">•••</button>
+      </header>
+
+      <div class="backup-tabs">
+        <button class="backup-tab active">▤ Backups</button>
+        <button class="backup-tab" id="backToMail">✎ Workspace 1</button>
+      </div>
+
+      <div class="breadcrumb">Workspace &nbsp;›&nbsp; Backup checklist</div>
+
+      <div class="backup-intro">
+        <div class="eyebrow">• DAILY BACKUP LIST</div>
+        <h1>Keep every backup<br><span>accounted for.</span></h1>
+        <p>Copy each dated sheet name, finish the backup in Google Sheets, then mark its status here. Checkmarks are saved for the selected date.</p>
+      </div>
+
+      <div class="backup-date-row">
+        <div>
+          <strong>▦ &nbsp; Date on sheet names</strong>
+          <small id="backupDateReadable"></small>
+        </div>
+
+        <div class="backup-date-buttons">
+          <button class="date-choice active" data-backup-date="today">Today</button>
+          <button class="date-choice" data-backup-date="tomorrow">Tomorrow</button>
+          <label class="custom-date">
+            Custom date
+            <input type="date" id="backupCustomDate">
+          </label>
+        </div>
+      </div>
+
+      <div class="sheet-heading">
+        <div>
+          <h2>Your 20 sheets <span id="backupProgress">0 / 20 done</span></h2>
+          <p>Copy name plus date. After making the backup in Google Sheets, check the box.</p>
+        </div>
+        <button class="uncheck-btn" id="uncheckAllBtn">× Uncheck all</button>
+      </div>
+
+      <div class="sheet-table">
+        <div class="sheet-table-head">
+          <span>SHEET NAME WITH DATE</span>
+          <span>COPY NAME</span>
+          <span>STATUS</span>
+        </div>
+        <div id="sheetList"></div>
+      </div>
+
+    </section>
+
   </main>
-
-  <footer>LAKSHMAN WORKSPACE · PERSONAL PRODUCTIVITY</footer>
 </div>
 
-<!-- TEMPLATE MODAL -->
+<!-- TEMPLATE EDITOR -->
 <div class="modal-backdrop" id="templateModal">
   <div class="modal">
-    <div class="modal-header">
-      <h2 id="modalTitle">Add Template</h2>
+    <div class="modal-head">
+      <h2 id="modalTitle">Add template</h2>
       <button class="close-btn" data-close="templateModal">×</button>
     </div>
 
     <form id="templateForm">
       <input type="hidden" id="templateId">
 
-      <label>Template Name</label>
-      <input id="formTitle" required placeholder="Example: Daily Report">
+      <label>Template name</label>
+      <input id="formTitle" required>
 
       <label>Subject</label>
-      <input id="formSubject" required placeholder="Email subject">
+      <input id="formSubject" required>
 
-      <label>To Email Addresses</label>
+      <label>To recipients</label>
       <div id="formToRows"></div>
-      <button type="button" class="small-btn" id="addFormToBtn">＋ Add To</button>
+      <button type="button" class="add-recipient" id="addToBtn">＋ Add recipient</button>
 
-      <label>CC Email Addresses</label>
+      <label>Cc recipients</label>
       <div id="formCcRows"></div>
-      <button type="button" class="small-btn" id="addFormCcBtn">＋ Add Cc</button>
+      <button type="button" class="add-recipient" id="addCcBtn">＋ Add Cc</button>
 
-      <label>Email Body</label>
-      <textarea id="formBody" rows="7" required placeholder="Write your email here..."></textarea>
+      <label>Message</label>
+      <textarea id="formBody" rows="8" required></textarea>
 
       <div class="modal-actions">
-        <button type="button" class="secondary-btn" data-close="templateModal">Cancel</button>
-        <button type="submit" class="primary-btn">Save Template</button>
+        <button type="button" class="light-btn" data-close="templateModal">Cancel</button>
+        <button type="submit" class="dark-btn">Save template</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- PREVIEW MODAL -->
-<div class="modal-backdrop" id="composeModal">
+<!-- PREVIEW -->
+<div class="modal-backdrop" id="previewModal">
   <div class="modal">
-    <div class="modal-header">
-      <h2>Email Preview</h2>
-      <button class="close-btn" data-close="composeModal">×</button>
+    <div class="modal-head">
+      <h2>Message preview</h2>
+      <button class="close-btn" data-close="previewModal">×</button>
     </div>
-
-    <div class="preview-content">
+    <div class="preview-details">
       <label>To</label>
       <div id="previewTo"></div>
-
       <label>Cc</label>
       <div id="previewCc"></div>
-
       <label>Subject</label>
-      <div id="composeSubject" class="preview-field"></div>
-
+      <div id="previewSubject"></div>
       <label>Message</label>
-      <pre id="composeBody" class="preview-body"></pre>
+      <pre id="previewBody"></pre>
     </div>
-
     <div class="modal-actions">
-      <button class="secondary-btn" data-close="composeModal">Close</button>
-      <button class="primary-btn" id="copyEmailBtn">Copy Email</button>
+      <button class="light-btn" data-close="previewModal">Close</button>
+      <button class="dark-btn" id="previewComposeBtn">Compose in Gmail ↗</button>
     </div>
   </div>
 </div>
