@@ -1,125 +1,159 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d5962" />
-  <title>Lakshman — Personal Workspace</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#105763">
+  <title>Lakshman Workspace</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="preview-banner">
-    Personal workspace preview — your changes are saved in this browser.
-  </div>
 
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#" aria-label="Lakshman home">
-        <span class="brand-mark">L</span>
-        <span><strong>Lakshman</strong><small>PERSONAL WORKSPACE</small></span>
-      </a>
-
-      <p class="nav-caption">WORKSPACES</p>
-      <button class="nav-item active" data-workspace="mail">
-        <span>✉</span> Mail dashboard
-      </button>
-      <button class="nav-item" data-workspace="backup">
-        <span>▦</span> Sheets backup
-      </button>
-
-      <div class="sidebar-note">
-        <span class="status-dot"></span>
-        Saved locally in this browser
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <div>
+        <strong>Lakshman</strong>
+        <small>PERSONAL WORKSPACE</small>
       </div>
-    </aside>
+    </div>
 
-    <main class="main-content">
-      <header class="topbar">
+    <div class="workspace-switch">
+      <button id="mailTab" class="switch-btn active" onclick="showWorkspace('mail')">
+        ✉ Mail Desk
+      </button>
+      <button id="backupTab" class="switch-btn" onclick="showWorkspace('backup')">
+        ▤ Workspace 2
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- WORKSPACE 1: MAIL DASHBOARD -->
+    <section id="mailWorkspace" class="workspace">
+      <div class="page-heading">
+        <div class="eyebrow">PERSONAL COMMUNICATION WORKSPACE</div>
+        <h1>Ready when you are.</h1>
+        <p>Choose a template, check the details, and let Gmail do the last mile.</p>
+      </div>
+
+      <div class="date-toolbar">
+        <label for="mailDate">▦ Date for drafts</label>
+        <input type="date" id="mailDate">
+        <button onclick="setMailDate('today')">Today</button>
+        <button onclick="setMailDate('tomorrow')">Tomorrow</button>
+      </div>
+
+      <section class="library-panel">
+        <div class="eyebrow">✧ YOUR LIBRARY</div>
+        <h2>Ten messages, already thought through.</h2>
+        <p>Choose a template, check the details, and let Gmail do the last mile. Your words stay yours.</p>
+
+        <input
+          type="search"
+          id="searchTemplates"
+          placeholder="⌕  Search title, recipient, subject..."
+          oninput="renderTemplates()"
+        >
+
+        <div class="library-footer">
+          <span id="templateCount">10 of 10 templates ready</span>
+          <span>◷ Local changes save instantly</span>
+        </div>
+      </section>
+
+      <div id="templateGrid" class="template-grid"></div>
+    </section>
+
+    <!-- WORKSPACE 2: GOOGLE SHEETS BACKUP -->
+    <section id="backupWorkspace" class="workspace hidden">
+
+      <div class="page-heading">
+        <div class="eyebrow">DAILY BACKUP LIST</div>
+        <h1>Keep every backup<br><span>accounted for.</span></h1>
+        <p>Copy each dated sheet name, finish the backup in Google Sheets, then mark its status here.</p>
+      </div>
+
+      <div class="date-toolbar backup-date">
         <div>
-          <p class="eyebrow">LAKSHMAN · PERSONAL COMMUNICATION WORKSPACE</p>
-          <h1 id="page-title">Ready when you are.</h1>
+          <strong>▦ Date on sheet names</strong>
+          <small id="backupDateLabel"></small>
         </div>
-        <div class="profile">
-          <span class="profile-name">Lakshman<br /><small>Focused mode</small></span>
-          <span class="avatar">L</span>
-        </div>
-      </header>
+        <button onclick="setBackupDate('today')">Today</button>
+        <button onclick="setBackupDate('tomorrow')">Tomorrow</button>
+        <input type="date" id="backupDate" onchange="renderBackups()">
+      </div>
 
-      <!-- MAIL WORKSPACE -->
-      <section id="mail-workspace" class="workspace">
-        <div class="date-row">
-          <label for="mail-date">▦ &nbsp; Date for drafts</label>
-          <input type="date" id="mail-date" />
-          <span class="hint">Drafts use the selected date</span>
+      <div class="backup-heading">
+        <div>
+          <h2>Your 20 sheets <span id="backupProgress">0 / 20 done</span></h2>
+          <p>Copy name puts the dated sheet name on your clipboard. After backing up, check the status.</p>
         </div>
+        <button class="light-button" onclick="uncheckAll()">× Uncheck all</button>
+      </div>
 
-        <section class="intro-card">
-          <p class="eyebrow">✧ YOUR LIBRARY</p>
-          <h2>Ten messages, already thought through.</h2>
-          <p>Choose a template, check the details, and let your email app do the last mile. Your words stay yours.</p>
-          <input id="template-search" class="search" type="search" placeholder="⌕  Search title, recipient, subject..." />
-          <div class="intro-footer"><span>✉ <b id="template-count">10</b> templates ready</span><span>◷ Local changes save instantly</span></div>
-        </section>
+      <div class="backup-table-wrap">
+        <table class="backup-table">
+          <thead>
+            <tr>
+              <th>SHEET NAME WITH DATE</th>
+              <th>COPY NAME</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="backupList"></tbody>
+        </table>
+      </div>
 
-        <div class="section-heading">
-          <div><h2>Message templates</h2><p>Choose a template to preview or compose.</p></div>
-          <button class="primary small" id="add-template">＋ Add template</button>
-        </div>
-        <div id="template-grid" class="template-grid"></div>
-      </section>
+    </section>
 
-      <!-- BACKUP WORKSPACE -->
-      <section id="backup-workspace" class="workspace hidden">
-        <div class="backup-hero">
-          <p class="eyebrow">• DAILY BACKUP LIST</p>
-          <h2>Keep every backup<br /><span>accounted for.</span></h2>
-          <p>Copy each dated sheet name, finish the backup in Google Sheets, then mark its status here. Checkmarks are saved for the selected date.</p>
-        </div>
+  </main>
 
-        <div class="date-row backup-date-row">
-          <label for="backup-date">▦ &nbsp; Date on sheet names</label>
-          <input type="date" id="backup-date" />
-          <button class="date-shortcut" id="backup-today">Today</button>
-          <button class="date-shortcut" id="backup-tomorrow">Tomorrow</button>
-          <button class="date-shortcut" id="backup-custom">Custom date</button>
-        </div>
+  <!-- EDIT / PREVIEW TEMPLATE MODAL -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="close-button" onclick="closeModal()">×</button>
+      <div class="eyebrow">EMAIL TEMPLATE</div>
+      <h2>Edit or preview template</h2>
 
-        <div class="section-heading">
-          <div><h2>Your 20 sheets <span class="progress-pill" id="backup-progress">0 / 20 done</span></h2><p>Copy the name, make the backup in Google Sheets, then check the box.</p></div>
-          <button class="text-button" id="uncheck-all">Uncheck all</button>
-        </div>
-        <div class="backup-table-wrap">
-          <div class="backup-table-head"><span>SHEET NAME WITH DATE</span><span>COPY NAME</span><span>STATUS</span></div>
-          <div id="backup-list"></div>
-        </div>
-      </section>
-    </main>
+      <label>Template title</label>
+      <input id="editTitle" type="text">
+
+      <label>Email subject</label>
+      <input id="editSubject" type="text">
+
+      <div class="recipient-heading">
+        <label>To</label>
+        <button type="button" onclick="addRecipient('to')">+ Add To</button>
+      </div>
+      <div id="toFields"></div>
+
+      <div class="recipient-heading">
+        <label>CC</label>
+        <button type="button" onclick="addRecipient('cc')">+ Add CC</button>
+      </div>
+      <div id="ccFields"></div>
+
+      <label>Message</label>
+      <textarea id="editMessage" rows="10"></textarea>
+
+      <div class="modal-actions">
+        <button class="light-button" onclick="saveTemplate()">Save template</button>
+        <button class="primary-button" onclick="composeFromModal()">Open in Gmail ↗</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Template preview / editor dialog -->
-  <dialog id="template-dialog">
-    <form method="dialog" class="dialog-card" id="template-form">
-      <div class="dialog-heading">
-        <div><p class="eyebrow">EMAIL TEMPLATE</p><h2 id="dialog-title">Preview message</h2></div>
-        <button type="button" class="icon-button" id="close-dialog" aria-label="Close">✕</button>
-      </div>
-      <input type="hidden" id="editing-id" />
-      <label>Template title<input id="field-title" required /></label>
-      <label>Email subject<input id="field-subject" required /></label>
-      <div class="address-heading"><strong>To</strong><button type="button" class="text-button" id="add-to">＋ Add To</button></div>
-      <div id="to-fields" class="address-fields"></div>
-      <div class="address-heading"><strong>CC</strong><button type="button" class="text-button" id="add-cc">＋ Add CC</button></div>
-      <div id="cc-fields" class="address-fields"></div>
-      <label>Message<textarea id="field-body" rows="8" required></textarea></label>
-      <div class="dialog-actions">
-        <button type="button" class="secondary" id="save-template">Save template</button>
-        <button type="button" class="primary" id="compose-email">Open in email app ↗</button>
-      </div>
-      <p class="dialog-help">Compose opens your device's configured email app. This static website does not send email or access your Gmail account.</p>
-    </form>
-  </dialog>
+  <footer>
+    <span>Lakshman Workspace</span>
+    <span>Personal productivity desk</span>
+  </footer>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="script.js"></script>
 </body>
 </html>
