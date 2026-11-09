@@ -1,3 +1,4 @@
+
 "use strict";
 
 const TEMPLATE_KEY = "lakshman_templates_v1";
@@ -6,73 +7,73 @@ const BACKUP_KEY = "lakshman_backups_v1";
 const defaultTemplates = [
   {
     title: "Project status — weekly",
-    subject: "Weekly project note",
+    subject: "Weekly project note — {{date}}",
     to: ["project@northstar.studio"],
     cc: [],
-    body: "Hi Mira,\n\nHere is the latest project status as of {date}.\n\nHighlights:\n• Product review is on track.\n• Development progress is moving forward.\n\nThanks,\nLakshman"
+    body: "Hi Mira,\n\nHere is the latest project status as of {{date}}.\n\nHighlights:\n• Product review is on track.\n• Development progress is moving forward.\n\nThanks,\nLakshman"
   },
   {
     title: "Design review follow-up",
-    subject: "A few notes after our design review",
+    subject: "A few notes after our design review — {{date}}",
     to: ["jo@fieldnotes.co"],
     cc: [],
-    body: "Hi Jo,\n\nThank you for the thoughtful review on {date}. I have folded the agreed changes into the latest version.\n\nPlease let me know if anything else needs updating.\n\nThanks,\nLakshman"
+    body: "Hi Jo,\n\nThank you for the thoughtful review on {{date}}. I have folded the agreed changes into the latest version.\n\nPlease let me know if anything else needs updating.\n\nThanks,\nLakshman"
   },
   {
     title: "Invoice reminder",
-    subject: "Invoice follow-up",
+    subject: "Invoice follow-up — {{date}}",
     to: ["accounts@example.com"],
     cc: [],
     body: "Hello,\n\nA quick follow-up on invoice #1842. Could you confirm its expected payment date?\n\nThank you,\nLakshman"
   },
   {
     title: "Meeting confirmation",
-    subject: "Confirmed: our conversation on {date}",
+    subject: "Confirmed: our conversation on {{date}}",
     to: ["nina@example.com"],
     cc: [],
-    body: "Hi Nina,\n\nConfirming our conversation for {date}. I have set aside the full hour and will share the agenda shortly.\n\nBest,\nLakshman"
+    body: "Hi Nina,\n\nConfirming our conversation for {{date}}. I have set aside the full hour and will share the agenda shortly.\n\nBest,\nLakshman"
   },
   {
     title: "Partner introduction",
-    subject: "An introduction to Ana",
+    subject: "An introduction to Ana — {{date}}",
     to: ["samir@example.com"],
     cc: [],
-    body: "Hi Samir,\n\nSharing this introduction on {date}. I wanted to connect you with Ana, who may be a great person to collaborate with.\n\nBest,\nLakshman"
+    body: "Hi Samir,\n\nSharing this introduction on {{date}}. I wanted to connect you with Ana, who may be a great person to collaborate with.\n\nBest,\nLakshman"
   },
   {
     title: "Request for materials",
-    subject: "Materials for our next working session",
+    subject: "Materials for our next working session — {{date}}",
     to: ["devon@example.com"],
     cc: [],
-    body: "Hi Devon,\n\nBefore we meet on {date}, could you send over the latest research notes and the presentation materials?\n\nThanks,\nLakshman"
+    body: "Hi Devon,\n\nBefore we meet on {{date}}, could you send over the latest research notes and the presentation materials?\n\nThanks,\nLakshman"
   },
   {
     title: "Decision log update",
-    subject: "Decision log updated",
+    subject: "Decision log updated — {{date}}",
     to: ["project@northstar.studio"],
     cc: [],
-    body: "Hello team,\n\nThe decision log has been updated for {date}.\n\nPlease review the latest entries and reply if anything needs correcting.\n\nThanks,\nLakshman"
+    body: "Hello team,\n\nThe decision log has been updated for {{date}}.\n\nPlease review the latest entries and reply if anything needs correcting.\n\nThanks,\nLakshman"
   },
   {
     title: "Thank-you note",
-    subject: "Thank you for the conversation",
+    subject: "Thank you for the conversation — {{date}}",
     to: ["contact@example.com"],
     cc: [],
-    body: "Hello,\n\nThank you for taking the time to speak with me on {date}. I appreciated the conversation and look forward to staying in touch.\n\nBest regards,\nLakshman"
+    body: "Hello,\n\nThank you for taking the time to speak with me on {{date}}. I appreciated the conversation and look forward to staying in touch.\n\nBest regards,\nLakshman"
   },
   {
     title: "Project handover",
-    subject: "Project handover documents",
+    subject: "Project handover documents — {{date}}",
     to: ["team@example.com"],
     cc: [],
-    body: "Hi team,\n\nPlease find the project handover details for {date}.\n\nLet me know if you need any additional information.\n\nRegards,\nLakshman"
+    body: "Hi team,\n\nPlease find the project handover details for {{date}}.\n\nLet me know if you need any additional information.\n\nRegards,\nLakshman"
   },
   {
     title: "Follow-up request",
-    subject: "Following up on our discussion",
+    subject: "Following up on our discussion — {{date}}",
     to: ["client@example.com"],
     cc: [],
-    body: "Hello,\n\nI am following up on our recent discussion. Please share an update when convenient.\n\nThank you,\nLakshman"
+    body: "Hello,\n\nI am following up on our recent discussion on {{date}}. Please share an update when convenient.\n\nThank you,\nLakshman"
   }
 ];
 
@@ -139,10 +140,12 @@ function iso(date) {
   ].join("-");
 }
 
+/* MM/DD/YYYY DATE FORMAT */
+
 function pretty(date) {
   return [
-    String(date.getDate()).padStart(2, "0"),
     String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
     date.getFullYear()
   ].join("/");
 }
@@ -164,7 +167,10 @@ function safe(value) {
 }
 
 function withDate(text, date) {
-  return String(text || "").replaceAll("{date}", pretty(date));
+  return String(text || "").replace(
+    /\{\{date\}\}|\{date\}/gi,
+    pretty(date)
+  );
 }
 
 function short(text, length) {
@@ -214,11 +220,14 @@ function setMailDate(which) {
 }
 
 function updateMailDateLabels() {
+  const today = new Date();
+  const tomorrow = plusDays(today, 1);
+
   document.getElementById("todayMailLabel").textContent =
-    pretty(new Date());
+    pretty(today);
 
   document.getElementById("tomorrowMailLabel").textContent =
-    pretty(plusDays(new Date(), 1));
+    pretty(tomorrow);
 
   document.getElementById("mailDateText").textContent =
     pretty(mailDate);
@@ -226,8 +235,8 @@ function updateMailDateLabels() {
   document.querySelectorAll("#mailWorkspace .date-chip")
     .forEach((button, index) => {
       const selected =
-        (index === 0 && iso(mailDate) === iso(new Date())) ||
-        (index === 1 && iso(mailDate) === iso(plusDays(new Date(), 1)));
+        (index === 0 && iso(mailDate) === iso(today)) ||
+        (index === 1 && iso(mailDate) === iso(tomorrow));
 
       button.classList.toggle("selected", selected);
     });
@@ -296,11 +305,11 @@ function renderTemplates() {
       </div>
 
       <h3>
-        ${safe(template.title)} — ${pretty(mailDate)}
+        ${safe(withDate(template.title, mailDate))}
       </h3>
 
       <div class="template-subject">
-        ${safe(template.subject)} — ${pretty(mailDate)}
+        ${safe(withDate(template.subject, mailDate))}
       </div>
 
       <div class="template-preview">
@@ -353,8 +362,14 @@ function editTemplate(index) {
   document.getElementById("editSubject").value =
     template.subject || "";
 
+  /*
+    IMPORTANT:
+    Keep {{date}} in the editor.
+    Do not replace it with today's date here.
+  */
+
   document.getElementById("editMessage").value =
-    withDate(template.body, mailDate);
+    template.body || "";
 
   document.getElementById("toFields").innerHTML = "";
   document.getElementById("ccFields").innerHTML = "";
@@ -449,6 +464,11 @@ function saveTemplate() {
     to: to,
     cc: cc,
 
+    /*
+      Save the original placeholder.
+      Example: {{date}} remains {{date}}.
+    */
+
     body: document.getElementById("editMessage").value
   };
 
@@ -490,12 +510,15 @@ function composeFromModal() {
 }
 
 function openGmail(template) {
-  const params = new URLSearchParams({
-    view: "cm",
-    fs: "1",
-    su: template.subject || "",
-    body: withDate(template.body, mailDate)
-  });
+  const params = new URLSearchParams();
+
+  params.set("view", "cm");
+  params.set("fs", "1");
+
+  // Replace date in subject AND body.
+  params.set("su", withDate(template.subject, mailDate));
+
+  params.set("body", withDate(template.body, mailDate));
 
   if ((template.to || []).length) {
     params.set("to", template.to.join(","));
