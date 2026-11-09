@@ -10,7 +10,7 @@ const defaultTemplates = [
     subject: "Weekly project note — {{date}}",
     to: ["project@northstar.studio"],
     cc: [],
-    body: "Hi Mira,\n\nHere is the latest project status as of {{date}}.\n\nHighlights:\n• Product review is on track.\n• Development progress is moving forward.\n\nThanks,\nLakshman"
+    body: "Hi Miraj,\n\nHere is the latest project status as of {{date}}.\n\nHighlights:\n• Product review is on track.\n• Development progress is moving forward.\n\nThanks,\nLakshman"
   },
   {
     title: "Design review follow-up",
