@@ -3,6 +3,7 @@
 
 const TEMPLATE_KEY = "lakshman_templates_v1";
 const BACKUP_KEY = "lakshman_backups_v1";
+const SHEET_KEY = "lakshman_sheet_names_v1";
 
 const defaultTemplates = [
   {
@@ -77,7 +78,7 @@ const defaultTemplates = [
   }
 ];
 
-const sheetNames = [
+const defaultSheetNames = [
   "Weekly Planning",
   "Content Calendar",
   "Project Brief",
@@ -116,8 +117,23 @@ function readJSON(key, fallback) {
 let templates = readJSON(TEMPLATE_KEY, defaultTemplates);
 let backups = readJSON(BACKUP_KEY, {});
 
+let savedNames = readJSON(SHEET_KEY, defaultSheetNames);
+
+let sheetNames =
+  Array.isArray(savedNames) && savedNames.length === 20
+    ? savedNames.map((name, index) =>
+        typeof name === "string" && name.trim()
+          ? name
+          : defaultSheetNames[index]
+      )
+    : clone(defaultSheetNames);
+
 if (!Array.isArray(templates) || !templates.length) {
   templates = clone(defaultTemplates);
+}
+
+if (!backups || typeof backups !== "object" || Array.isArray(backups)) {
+  backups = {};
 }
 
 let editingIndex = -1;
@@ -132,6 +148,10 @@ function saveBackups() {
   localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
 }
 
+function saveSheetNames() {
+  localStorage.setItem(SHEET_KEY, JSON.stringify(sheetNames));
+}
+
 function iso(date) {
   return [
     date.getFullYear(),
@@ -140,7 +160,7 @@ function iso(date) {
   ].join("-");
 }
 
-/* MM/DD/YYYY DATE FORMAT */
+/* MM/DD/YYYY FORMAT */
 
 function pretty(date) {
   return [
@@ -304,9 +324,7 @@ function renderTemplates() {
         </button>
       </div>
 
-      <h3>
-        ${safe(withDate(template.title, mailDate))}
-      </h3>
+      <h3>${safe(withDate(template.title, mailDate))}</h3>
 
       <div class="template-subject">
         ${safe(withDate(template.subject, mailDate))}
@@ -362,40 +380,26 @@ function editTemplate(index) {
   document.getElementById("editSubject").value =
     template.subject || "";
 
-  /*
-    IMPORTANT:
-    Keep {{date}} in the editor.
-    Do not replace it with today's date here.
-  */
-
   document.getElementById("editMessage").value =
     template.body || "";
 
   document.getElementById("toFields").innerHTML = "";
   document.getElementById("ccFields").innerHTML = "";
 
-  (template.to || []).forEach(value => {
-    addRecipient("to", value);
-  });
-
-  (template.cc || []).forEach(value => {
-    addRecipient("cc", value);
-  });
+  (template.to || []).forEach(value => addRecipient("to", value));
+  (template.cc || []).forEach(value => addRecipient("cc", value));
 
   if (!(template.to || []).length) {
     addRecipient("to");
   }
 
   document.getElementById("editModal").classList.remove("hidden");
-
   document.body.style.overflow = "hidden";
 }
 
 function closeModal() {
   document.getElementById("editModal").classList.add("hidden");
-
   document.body.style.overflow = "";
-
   editingIndex = -1;
 }
 
@@ -410,22 +414,18 @@ function addRecipient(type, value = "") {
   row.className = "recipient-row";
 
   const input = document.createElement("input");
-
   input.type = "email";
   input.placeholder = "name@example.com";
   input.value = value;
   input.className = type + "-email";
 
   const remove = document.createElement("button");
-
   remove.type = "button";
   remove.className = "remove-recipient";
   remove.textContent = "Remove";
-
   remove.onclick = () => row.remove();
 
   row.append(input, remove);
-
   parent.append(row);
 }
 
@@ -456,24 +456,14 @@ function saveTemplate() {
 
   templates[editingIndex] = {
     ...templates[editingIndex],
-
     title: document.getElementById("editTitle").value.trim(),
-
     subject: document.getElementById("editSubject").value.trim(),
-
-    to: to,
-    cc: cc,
-
-    /*
-      Save the original placeholder.
-      Example: {{date}} remains {{date}}.
-    */
-
+    to,
+    cc,
     body: document.getElementById("editMessage").value
   };
 
   saveTemplates();
-
   closeModal();
   renderTemplates();
 
@@ -484,7 +474,6 @@ function saveTemplate() {
 
 function composeTemplate(index) {
   if (!templates[index]) return;
-
   openGmail(templates[index]);
 }
 
@@ -499,12 +488,9 @@ function composeFromModal() {
 
   openGmail({
     title: document.getElementById("editTitle").value,
-
     subject: document.getElementById("editSubject").value,
-
-    to: to,
-    cc: cc,
-
+    to,
+    cc,
     body: document.getElementById("editMessage").value
   });
 }
@@ -515,9 +501,7 @@ function openGmail(template) {
   params.set("view", "cm");
   params.set("fs", "1");
 
-  // Replace date in subject AND body.
   params.set("su", withDate(template.subject, mailDate));
-
   params.set("body", withDate(template.body, mailDate));
 
   if ((template.to || []).length) {
@@ -547,8 +531,7 @@ function setBackupDate(which) {
     ? plusDays(new Date(), 1)
     : new Date();
 
-  document.getElementById("backupDate").value =
-    iso(backupDate);
+  document.getElementById("backupDate").value = iso(backupDate);
 
   renderBackups();
 }
@@ -562,6 +545,46 @@ document.getElementById("backupDate").addEventListener("change", event => {
 
   renderBackups();
 });
+
+/* EDIT SHEET NAMES */
+
+function editSheetName(index) {
+  if (index < 0 || index >= sheetNames.length) return;
+
+  const newName = prompt(
+    "Enter new sheet name:",
+    sheetNames[index]
+  );
+
+  if (newName === null) return;
+
+  const trimmedName = newName.trim();
+
+  if (!trimmedName) {
+    alert("Sheet name cannot be empty.");
+    return;
+  }
+
+  sheetNames[index] = trimmedName;
+
+  saveSheetNames();
+  renderBackups();
+
+  toast("Sheet name updated successfully");
+}
+
+/* RESET SHEET NAMES */
+
+function resetSheetNames() {
+  if (!confirm("Restore all 20 default sheet names?")) return;
+
+  sheetNames = clone(defaultSheetNames);
+
+  saveSheetNames();
+  renderBackups();
+
+  toast("Default sheet names restored");
+}
 
 /* BACKUP CHECKLIST */
 
@@ -588,6 +611,15 @@ function renderBackups() {
 
         <td>
           <span class="sheet-name">${safe(name)}</span>
+
+          <button
+            type="button"
+            class="edit-icon"
+            onclick="editSheetName(${index})"
+            title="Edit sheet name"
+            aria-label="Edit ${safe(name)}">
+            ✎
+          </button>
 
           <span class="sheet-date">
             - ${pretty(backupDate)}
@@ -632,16 +664,13 @@ async function copySheetName(index) {
 
   try {
     await navigator.clipboard.writeText(text);
-
     toast("Copied: " + text);
 
   } catch (error) {
     const element = document.createElement("textarea");
 
     element.value = text;
-
     document.body.append(element);
-
     element.select();
 
     const success = document.execCommand("copy");
@@ -699,19 +728,15 @@ function toggleBackup(index, checked) {
   backups[key][index] = checked;
 
   saveBackups();
-
   renderBackups();
 }
 
 function uncheckAll() {
-  if (!confirm("Uncheck all 20 sheets for this date?")) {
-    return;
-  }
+  if (!confirm("Uncheck all 20 sheets for this date?")) return;
 
   backups[iso(backupDate)] = {};
 
   saveBackups();
-
   renderBackups();
 }
 
@@ -732,18 +757,13 @@ document.addEventListener("keydown", event => {
 /* START WEBSITE */
 
 function init() {
-  document.getElementById("mailDate").value =
-    iso(mailDate);
+  document.getElementById("mailDate").value = iso(mailDate);
 
-  document.getElementById("backupDate").value =
-    iso(backupDate);
+  document.getElementById("backupDate").value = iso(backupDate);
 
   updateMailDateLabels();
-
   renderTemplates();
-
   renderBackups();
-
   showWorkspace("mail");
 }
 
